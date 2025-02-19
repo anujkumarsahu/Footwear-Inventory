@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+
+
+<div class="container-fluid">
+
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0 font-size-18">Module List</h4>
+
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <div class="search-box me-2 mb-2 d-inline-block">
+                             
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <a href=" {% url 'module' 'Save' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-plus me-1"></i> Add New Module</a>
+                                </div> 
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <table id="datatable-buttons" class="table w-100">
+                            <thead class="table-light">
+                                <tr>
+                                    
+                                    <th class="align-middle">#</th>
+                                    <th class="align-middle"> Module Name</th>
+                                    <th class="align-middle">DB Name</th>
+                                    <th class="align-middle">Schema Name</th>
+                                    <th class="align-middle">Password</th>
+                                    <th class="align-middle">User</th>
+                                    <th class="align-middle">Action</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% for data in module_list %}
+                                <tr>
+                                    <td>{{ forloop.counter}} </td>
+                                    <td> {{data.name}} </td>    
+                                    <td> {{data.db_name}} </td>    
+                                    <td> {{data.db_schema_name}} </td>    
+                                    <td> {{data.db_pass}} </td>    
+                                    <td> {{data.user.name}} </td> 
+                                    
+                                  
+                                    <td>
+                                        <div class="d-flex gap-3">
+                                            <a href="{% url 'module' 'Close' data.id %}" class="text-warning"><i class="mdi mdi-eye font-size-18"></i></a>
+                                            <a href="{% url 'module' 'Update' data.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                            <a href="#" class="pull-right text-danger" data-bs-toggle="modal" data-bs-target=".ActiveDeactiveModel{{ data.id }}" title="Add New Brand">
+                                                <i class="mdi mdi-delete font-size-18"></i>
+                                            </a>
+                                        </div>
+                                        <!-- Modal -->
+                                        <div class="modal fade ActiveDeactiveModel{{ data.id }}" tabindex="-1" role="dialog" aria-labelledby="ActiveDeactiveModel{{ data.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                
+                                                <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                                                    {% csrf_token %}   
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title {% if data.status == 1 %} text-danger {% else %} text-success {% endif %}" id="ActiveDeactiveModel{{ data.id }}">{% if data.status == 1 %}  Deactivate Confirmation  {% else %} Activate Confirmation {% endif %}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        
+                                                        <div class="w-100">
+                                                            <table class="table align-middle  w-100">
+                                                            
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> Module Name  </th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> : </th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.name}}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> DB Schema Name</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> : </th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.db_schema_name}}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+
+
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    
+                                                        <button class="btn {% if data.status == 1 %}  btn-danger {% else %}  btn-success {% endif %}" {% if data.status == 1 %} name="DelData" {% else %} name="ActData" {% endif %}  type="submit" value="{{ data.id }}">
+                                                            {% if data.status == 1 %} Deactivate {% else %} Activate {% endif %}
+                                                        </button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            </div>
+                                        </div>
+                                        <!-- end modal -->
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div> 
+
+
+{% endblock content %}
+{% block jsfile %} <script src="{% static 'assets/js/pages/datatables.init.js' %}"></script> {% endblock jsfile %}

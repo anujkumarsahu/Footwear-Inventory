@@ -1,0 +1,668 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+
+<div class="container-fluid">
+        <!-- start page title -->
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0 font-size-18">Purchase</h4>
+                </div>
+            </div>
+        </div>
+     <!-- end row -->
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+     <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <div class="search-box me-2 mb-2 d-inline-block">
+                                <div class="position-relative">
+                                    {% comment %} <input type="text" class="form-control" placeholder="Search...">
+                                    <i class="bx bx-search-alt search-icon"></i> {% endcomment %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <a href="{% url 'purchase' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Purchase List</a>
+                                </div> 
+                        </div><!-- end col-->
+                    </div>
+                    <form name="form1" class="custom-validation" method="POST" enctype="multipart/form-data" id="form1">
+                        {% csrf_token %}
+                        <div class="row ">
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>Supplier</b></strong>
+                                        {% if action != 'Close' %}
+                                            <a href="#" class="pull-right" data-bs-toggle="modal" data-bs-target=".Addsupplier" title="Add New Supplier">
+                                                <i class="fas fa-plus-circle" style="font-size:18px; margin-left:2px;"></i>
+                                            </a>
+                                        {% endif %}
+                                    </label>
+                                    {{ form.supplier }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>Purchase Invoice </b> </strong> 
+                                        
+                                    </label>
+                                    {{ form.po_number }}
+                                </div>
+                            </div>
+                           
+                            <div class="col-lg-3  mt-1">
+                                <div class="form-group"><label><strong><b>Purchase Date</b></strong>  </label>
+                                {{form.po_date}}
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>GST </b></strong>
+                                        {% if action != 'Close' %}
+                                            <a href="#" class="pull-right" data-bs-toggle="modal" data-bs-target=".addgst" title="Add GST">
+                                                <i class="fas fa-plus-circle" style="font-size:18px; margin-left:2px;"></i>
+                                            </a>
+                                        {% endif %}
+                                    </label>
+                                    {{ form.gst }}
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3  mt-1">
+                                <div class="form-group"><label><strong><b>GST Amount</b></strong></label>
+                                {{form.gst_amount}}
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3  mt-1">
+                                <div class="form-group"><label><strong><b>Total Amount</b></strong></label>
+                                {{form.total_amount}}
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3  mt-1">
+                                <div class="form-group"><label><strong><b>Status</b></strong></label>
+                                {{form.active_status}}
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <div class="row">
+
+                            <table class="table" id="dynamicTable">
+                                <thead>
+                                    <tr>
+                                        <th width="10%">Name</th>
+                                        <th width="15%">Footwear <span>
+                                            <a href="{% url 'footwear' 'Save' 'None' %}" ><i class="fas fa-plus-circle" style="font-size:18px; margin-left:2px;"></i>
+                                            </a></span>
+                                        </th>
+                                        <th width="15%">Materials <span>
+                                            <a href="#" class="pull-right" data-bs-toggle="modal" data-bs-target=".footwearmaterial" title="Add New Footwear Category">
+                                                <i class="fas fa-plus-circle" style="font-size:18px; margin-left:2px;"></i>
+                                            </a>
+                                        </span> </th>
+                                        <th width="10%">Size<span>
+                                            <a href="#" class="pull-right" data-bs-toggle="modal" data-bs-target=".addSize" title="Add New Footwear Size">
+                                                <i class="fas fa-plus-circle" style="font-size:18px; margin-left:2px;"></i>
+                                            </a>
+                                        </span> </th>
+                                        <th width="10%">Quantity</th>
+                                        <th width="10%">Color</th>
+                                        <th width="10%">MRP</th>
+                                        <th width="10%">Purchase Price</th>
+                                        <th width="10%"> Selling Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ form.name }}</td>
+                                        <td>{{ form.footwear }}</td>
+                                        <td>{{ form.materials }}</td>
+                                        <td>{{ form.size }}</td>
+                                        <td>{{ form.quantity }}</td>
+                                        <td>{{ form.color }}</td>
+                                        <td>{{ form.mrp }}</td>
+                                        <td>{{ form.p_price }}</td>
+                                        <td>{{ form.selling_price }}</td>
+                                        <td>
+                                            <div class="d-sm-flex align-items-center justify-content-between"> 
+                                                <div class="btn btn-success addRow"><i class="fas fa-plus-circle"></i></div>
+                                                <div class="btn btn-danger deleteRow"><i class="fas fa-trash-alt"></i></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                     
+                            
+                        </div>
+                            <div class="d-flex justify-content-end align-items-center">
+                                <div class="col-lg-3 mt-1 ms-3">
+                                <div>
+                                    <label><strong><b>Sub Total</b></strong></label>
+                                    {{ form.sub_total }}
+                                </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center">
+                                <div class="col-lg-4 mt-1 ms-3">
+                                    <div class="form-group">
+                                        <label><strong><b>Notes</b></strong></label>
+                                        {{ form.notes }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">   
+                            <div class="col-md-12 col-sm-12 col-xs-12 m-2"  align="center">
+                                {% if action != 'Close' %}
+                                <center>
+                                    <button type="submit" name="purchase" class="btn btn-info   waves-effect waves-light" >{{action}}</button>
+                                    <button type="reset" class="btn btn-secondary waves-effect waves-light">Reset </button>
+                                </center>
+
+                               {% endif %}
+                            </div>
+                        </div>
+                    </form>
+
+                    
+                </div>
+            </div>
+        </div> <!-- end col -->
+    </div> <!-- end row -->
+    <!--- Supplier Model -->
+    <div class="modal fade Addsupplier" tabindex="-1" role="dialog" aria-labelledby="Addsupplier" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            
+            <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                {% csrf_token %}   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="Addsupplier">Add New Supplier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap">
+                           
+                                <tr>
+                                    <td>
+                                        <div>
+                                        <th scope="col">  Name</th>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{sup_form.name}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Contact Person</th>
+                                        </div>
+                                    </td>
+                                    
+                                
+                                    <td>
+                                        <div>
+                                            {{sup_form.contact_person}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Contact Number</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{sup_form.contact_number}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Contact Email</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{sup_form.email}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Address</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{sup_form.address}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col">GST Number</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{sup_form.gst_number}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col">Payment Terms</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{sup_form.payment_terms}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                
+                    <button type="submit" name="supSave" class="btn btn-primary" >Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+
+    <!--- Footwear GST Model -->
+    <div class="modal fade addgst" tabindex="-1" role="dialog" aria-labelledby="addgst" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            
+            <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                {% csrf_token %}   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addgst">Add GST</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap">
+                                <tr>
+                                    <td>
+                                        <div>
+                                        <th scope="col">GST Type</th>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{gst_form.gst_type}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col">GST Percentage (%)</th>
+                                        </div>
+                                    </td>
+                                    
+                                
+                                    <td>
+                                        <div>
+                                            {{gst_form.gst_percentage}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                
+                    <button type="submit" name="gstSave" class="btn btn-primary" >Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+
+    <!--- Footwear Size Model -->
+    <div class="modal fade addSize" tabindex="-1" role="dialog" aria-labelledby="addSize" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            
+            <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                {% csrf_token %}   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSize">Add New Footwear Material</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap">
+                                <tr>
+                                    <td>
+                                        <div>
+                                        <th scope="col"> Size Type</th>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{s_form.system}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col">Size Value</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{s_form.value}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                
+                    <button type="submit" name="sizeSave" class="btn btn-primary" >Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div> 
+
+    <!--- Footwear Material Model -->
+    <div class="modal fade footwearmaterial" tabindex="-1" role="dialog" aria-labelledby="footwearmaterial" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            
+            <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                {% csrf_token %}   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="footwearmaterial">Add New Footwear Material</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap">
+                                <tr>
+                                    <td>
+                                        <div>
+                                        <th scope="col"> Material Name</th>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{mat_form.name}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Description</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{mat_form.description}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                
+                    <button type="submit" name="footwearmaterial" class="btn btn-primary" >Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div> 
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function initializeSelect2() {
+                $('.select2').select2();
+            }
+        
+            function calculateTotals() {
+                let grandSubTotal = 0;
+                let grandGstAmount = 0;
+                let grandTotal = 0;
+        
+                const csrfToken = '{{ csrf_token }}';
+                const gstType = $('.gst').val(); 
+        
+                $('#dynamicTable tbody tr').each(function () {
+                    const $row = $(this);
+                    const quantity = parseFloat($row.find('.quantity').val()) || 0;
+                    const price = parseFloat($row.find('.p_price').val()) || 0;
+                    const subTotal = quantity * price;
+        
+                    $row.find('.sub_total').text(subTotal.toFixed(2));
+        
+                    if (gstType) {
+                        $.ajax({
+                            url: "{% url 'get_gst_percentage' %}",
+                            method: 'POST',
+                            data: {
+                                'gst': gstType,
+                                'csrfmiddlewaretoken': csrfToken,
+                            },
+                            success: function (response) {
+                                const gstPercentage = parseFloat(response.gst_percentage) || 0;
+                                const gstAmount = (subTotal * gstPercentage) / 100;
+                                const totalAmount = subTotal + gstAmount;
+        
+                                $row.find('.gst_amount').text(gstAmount.toFixed(2));
+                                $row.find('.total_amount').text(totalAmount.toFixed(2));
+        
+                                grandSubTotal += subTotal;
+                                grandGstAmount += gstAmount;
+                                grandTotal += totalAmount;
+        
+                                
+                                updateGrandTotals(grandSubTotal, grandGstAmount, grandTotal);
+                            },
+                            error: function () {
+                                console.error('Error fetching GST percentage.');
+                            },
+                        });
+                    } else {
+                        // If no GST type is selected
+                        $row.find('.gst_amount').text('0.00');
+                        $row.find('.total_amount').text(subTotal.toFixed(2));
+                        grandSubTotal += subTotal;
+                        grandTotal += subTotal;
+        
+                        updateGrandTotals(grandSubTotal, grandGstAmount, grandTotal);
+                    }
+                });
+            }
+        
+            function updateGrandTotals(subTotal, gstAmount, total) {
+                $('#id_sub_total').val(subTotal.toFixed(2));
+                $('#id_gst_amount').val(gstAmount.toFixed(2));
+                $('#id_total_amount').val(total.toFixed(2));
+            }
+        
+            // Bind event listeners
+            $(document).on('input', '.quantity, .p_price', function () {
+                calculateTotals();
+            });
+        
+            $(document).on('change', '.gst', function () {
+                calculateTotals(); 
+            });
+        
+            $(document).on('click', '.addRow', function () {
+                let newRow = `<tr>
+                    <td>{{ form.name }}</td>
+                    <td>{{ form.footwear }}</td>
+                    <td>{{ form.materials }}</td>
+                    <td>{{ form.size }}</td>
+                    <td>{{ form.quantity }}</td>
+                    <td>{{ form.color }}</td>
+                    <td>{{ form.mrp }}</td>
+                    <td>{{ form.p_price }}</td>
+                    <td>{{ form.selling_price }}</td>
+                    <td>
+                        <div class="d-sm-flex align-items-center justify-content-between"> 
+                            <div class="btn btn-success addRow"><i class="fas fa-plus-circle"></i></div>
+                            <div class="btn btn-danger deleteRow"><i class="fas fa-trash-alt"></i></div>
+                        </div>
+                    </td>
+                </tr>`;
+                $('#dynamicTable tbody').append(newRow);
+                initializeSelect2();
+            });
+        
+            $(document).on('click', '.deleteRow', function () {
+                if ($('#dynamicTable tbody tr').length > 1) {
+                    $(this).closest('tr').remove();
+                    calculateTotals();
+                } else {
+                    alert('At least one row must remain in the table.');
+                }
+            });
+        
+            initializeSelect2();
+            calculateTotals();
+        });
+    </script>
+
+    {% comment %} <script>
+        $(document).ready(function () {
+            function initializeSelect2() {
+                $('.select2').select2();
+            }
+    
+            $(document).on('click', '.addRow', function () {
+                let newRow = `<tr>
+                    
+                    <td>{{ form.name }}</td>
+                    <td>{{ form.footwear }}</td>
+                    <td>{{ form.materials }}</td>
+                    <td>{{ form.size }}</td>
+                    <td>{{ form.quantity }}</td>
+                    <td>{{ form.color }}</td>
+                    <td>{{ form.mrp }}</td>
+                    <td>{{ form.p_price }}</td>
+                    <td>{{ form.selling_price }}</td>
+                    <td>
+                        <div class="d-sm-flex align-items-center justify-content-between"> 
+                            <div class="btn btn-success addRow"><i class="fas fa-plus-circle"></i></div>
+                            <div class="btn btn-danger deleteRow"><i class="fas fa-trash-alt"></i></div>
+                        </div>
+                    </td>
+                </tr>`;
+    
+                $('#dynamicTable tbody').append(newRow);
+                initializeSelect2(); 
+            });
+    
+            $(document).on('click', '.deleteRow', function () {
+                if ($('#dynamicTable tbody tr').length > 1) {
+                    $(this).closest('tr').remove(); 
+                    initializeSelect2(); 
+                } else {
+                    alert('At least one row must remain in the table.');
+                }
+            });
+            initializeSelect2();
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({
+                width: '100%' 
+            });
+        });
+    </script> {% endcomment %}
+    {% endblock content %}
+    {% block jsfile %} 
+    <script src="{% static 'assets/js/pages/form-validation.init.js' %}"></script>
+    <script src="{% static 'assets/js/pages/form-advanced.init.js' %}"></script>
+    
+    {% endblock jsfile %}

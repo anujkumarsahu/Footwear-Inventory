@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+
+
+<div class="container-fluid">
+
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0 font-size-18">Footwear List</h4>
+
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <div class="search-box me-2 mb-2 d-inline-block">
+                                <div class="position-relative">
+                                    {% comment %} <input type="text" class="form-control" placeholder="Search...">
+                                    <i class="bx bx-search-alt search-icon"></i> {% endcomment %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <a href=" {% url 'footwear' 'Save' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-plus me-1"></i> Add New Footwear</a>
+                                </div> 
+                        </div><!-- end col-->
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap table-check">
+                            <thead class="table-light">
+                                <tr>
+                                    {% comment %} <th style="width: 20px;" class="align-middle">
+                                        <div class="form-check font-size-16">
+                                            <input class="form-check-input" type="checkbox" id="checkAll">
+                                            <label class="form-check-label" for="checkAll"></label>
+                                        </div>
+                                    </th> {% endcomment %}
+                                    <th class="align-middle">#</th>
+                                    <th class="align-middle">Footwear ID</th>
+                                    <th class="align-middle">Brand Name</th>
+                                    <th class="align-middle">Category Name</th>
+                                    <th class="align-middle">Low Stock threshold Quantity</th>
+                                    <th class="align-middle">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% for data in footwear_list %}
+                                <tr>
+                                    {% comment %} <td>
+                                        <div class="form-check font-size-16">
+                                            <input class="form-check-input" type="checkbox" id="orderidcheck09">
+                                            <label class="form-check-label" for="orderidcheck09"></label>
+                                        </div>
+                                    </td> {% endcomment %}
+                                    <td>{{ forloop.counter}} </td>
+                                    <td><a href="javascript: void(0);" class="text-body fw-bold">{{data.style_code}}</a> </td>
+                                    <td>{{data.brand.name}}</td>
+                                    <td>
+                                        {{data.category.name}}
+                                    </td>
+                                    <td>
+                                        {{data.low_stock_threshold}}
+                                    </td>
+                                  
+                                    <td>
+                                        <div class="d-flex gap-3">
+                                            <a href="{% url 'footwear' 'Close' data.id %}" class="text-warning"><i class="mdi mdi-eye font-size-18"></i></a>
+                                            <a href="{% url 'footwear' 'Update' data.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                            <a href="#" class="pull-right text-danger" data-bs-toggle="modal" data-bs-target=".ActiveDeactiveModel{{ data.id }}" title="Add New Brand">
+                                                <i class="mdi mdi-delete font-size-18"></i>
+                                            </a>
+                                        </div>
+                                        <!-- Modal -->
+                                        <div class="modal fade ActiveDeactiveModel{{ data.id }}" tabindex="-1" role="dialog" aria-labelledby="ActiveDeactiveModel{{ data.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                
+                                                <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                                                    {% csrf_token %}   
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="ActiveDeactiveModel{{ data.id }}">{% if data.status == 1 %}Deactivate Confirmation  {% else %}Activate Confirmation {% endif %}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        
+                                                        <div class="table-responsive">
+                                                            <table class="table align-middle table-nowrap">
+                                                            
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> Brand Name</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.brand.name}}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                                <th scope="col"> Category Name</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        
+                                                                    
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.category.name}}
+                                                                            </div>
+                                                                        </td>
+                                                                        
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                                <th scope="col">Low Stock Threshold Quantity</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        
+                                                                
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.low_stock_threshold}}
+                                                                            </div>
+                                                                        </td>
+                                                                        
+                                                                    </tr>
+                                                                    
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    
+                                                        <button class="btn {% if data.status == 1 %}  btn-danger {% else %}  btn-success {% endif %}" {% if data.status == 1 %} name="DelData" {% else %} name="ActData" {% endif %}  type="submit" value="{{ data.id }}">
+                                                            {% if data.status == 1 %} Deactivate {% else %} Activate {% endif %}
+                                                        </button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            </div>
+                                        </div>
+                                        <!-- end modal -->
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div> 
+
+
+{% endblock content %}
+{% block jsfile %}{% endblock jsfile %}

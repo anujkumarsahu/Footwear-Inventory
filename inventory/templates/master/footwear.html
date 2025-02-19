@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+
+<div class="container-fluid">
+        <!-- start page title -->
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0 font-size-18">Footwear</h4>
+                </div>
+            </div>
+        </div>
+     <!-- end row -->
+     {% comment %} {% if messages %}
+     <div class="col-12">
+         {% for message in messages %}
+             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                 {{ message }}
+                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+             </div>
+         {% endfor %}
+     </div>
+    {% endif %} {% endcomment %}
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+     <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <div class="search-box me-2 mb-2 d-inline-block">
+                                <div class="position-relative">
+                                    {% comment %} <input type="text" class="form-control" placeholder="Search...">
+                                    <i class="bx bx-search-alt search-icon"></i> {% endcomment %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <a href="{% url 'footwear' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Footwear List</a>
+                                </div> 
+                        </div><!-- end col-->
+                    </div>
+                    <form name="form1" class="custom-validation" method="POST" enctype="multipart/form-data" id="form1">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>Brand</b></strong>
+                                        {% if action != 'Close' %}
+                                            <span class="text-danger">*</span>
+                                            <a href="#" class="pull-right" data-bs-toggle="modal" data-bs-target=".Addbrand" title="Add New Brand">
+                                                <i class="fas fa-plus-circle" style="font-size:18px; margin-left:2px;"></i>
+                                            </a>
+                                        {% endif %}
+                                    </label>
+                                    {{ form.brand }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>Category</b></strong>
+                                        {% if action != 'Close' %}
+                                            <span class="text-danger">*</span>
+                                            <a href="#" class="pull-right" data-bs-toggle="modal" data-bs-target=".footwearcategory" title="Add New Footwear Category">
+                                                <i class="fas fa-plus-circle" style="font-size:18px; margin-left:2px;"></i>
+                                            </a>
+                                        {% endif %}
+                                    </label>
+                                    {{ form.category }}
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3  mt-1">
+                                <div class="form-group"><label><strong><b>Low-Stock-Threshold Quantity</b></strong>  <span class="text-danger">*</span></label>
+                                {{form.low_stock_threshold}}
+                                </div>
+                            </div>
+                            <div class="col-lg-3  mt-1">
+                                <div class="form-group"><label><strong><b>Description</b></strong></label>
+                                {{form.description}}
+                                </div>
+                            </div>
+                            
+                        </div>
+                    
+                        <div class="row">   
+                            <div class="col-md-12 col-sm-12 col-xs-12 mt-2"  align="center">
+                                {% if action != 'Close' %}
+                                <center>
+                                <button type="submit" name="footwear" class="btn btn-info waves-effect" >{{action}}</button>
+                                <button type="reset" class="btn btn-secondary waves-effect"> Reset </button>
+                                </center>
+
+                               {% endif %}
+                            </div>
+                        </div>
+                    </form>
+
+                    
+                </div>
+            </div>
+        </div> <!-- end col -->
+    </div> <!-- end row -->
+    <!--- Brand Model -->
+    <div class="modal fade Addbrand" tabindex="-1" role="dialog" aria-labelledby="Addbrand" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            
+            <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                {% csrf_token %}   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="Addbrand">Add New Brand</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap">
+                           
+                                <tr>
+                                    <td>
+                                        <div>
+                                        <th scope="col"> Brand Name</th>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{brand_form.name}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Brand Logo</th>
+                                        </div>
+                                    </td>
+                                    
+                                
+                                    <td>
+                                        <div>
+                                            {{brand_form.logo}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Brand Description</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{brand_form.description}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                
+                    <button type="submit" name="brand" class="btn btn-primary" >Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+
+    <!--- Footwear Category Model -->
+    <div class="modal fade footwearcategory" tabindex="-1" role="dialog" aria-labelledby="footwearcategory" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            
+            <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                {% csrf_token %}   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="footwearcategory">Add New Footwear Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap">
+                                <tr>
+                                    <td>
+                                        <div>
+                                        <th scope="col">Category Name</th>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{footwearCategory_form.name}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col">Category Gender</th>
+                                        </div>
+                                    </td>
+                                    
+                                
+                                    <td>
+                                        <div>
+                                            {{footwearCategory_form.gender}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Description</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{footwearCategory_form.description}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                
+                    <button type="submit" name="footwearcategory" class="btn btn-primary" >Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+    {% comment %} <!--- Footwear Material Model -->
+    <div class="modal fade footwearmaterial" tabindex="-1" role="dialog" aria-labelledby="footwearmaterial" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            
+            <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                {% csrf_token %}   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="footwearmaterial">Add New Footwear Material</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap">
+                                <tr>
+                                    <td>
+                                        <div>
+                                        <th scope="col"> Material Name</th>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{material_form.name}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <th scope="col"> Description</th>
+                                        </div>
+                                    </td>
+                                    
+                               
+                                    <td>
+                                        <div>
+                                            {{material_form.description}}
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                
+                    <button type="submit" name="footwearmaterial" class="btn btn-primary" >Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div> {% endcomment %}
+
+    {% endblock content %}
+    {% block jsfile %} <script src="{% static 'assets/js/pages/form-validation.init.js' %}"></script>{% endblock jsfile %}

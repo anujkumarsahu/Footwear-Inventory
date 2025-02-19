@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+<script>
+    function printDiv(divId) {
+        var originalContents = document.body.innerHTML;
+        var printContents = document.getElementById(divId).innerHTML;
+
+        document.body.innerHTML = printContents;  // Replace the page content with the print content
+        window.print();  // Trigger print dialog
+        document.body.innerHTML = originalContents;  // Restore the original content after printing
+    }
+</script>
+<div class="container-fluid">
+        <!-- start page title -->
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0 font-size-18">Sales</h4>
+                </div>
+            </div>
+        </div>
+     <!-- end row -->
+    {% if messages %}
+    <div class="col-12 m-2">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+     <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-body" id = 'PrintDive'>
+                    <div class="row m-3">
+                        <div class="row mb-2">
+                            <div class="col-sm-9">
+                                <div class="me-2 mb-2 d-inline-block text-sm-start">
+                                    <div class="position-relative">
+                                    <h3><img src="{% static 'assets/logo.png' %}" alt="Shop Logo" class="shop-logo"> <B> AK Shoe House</B> </h3> 
+                                    
+                                    </div>
+                                    <div class="shop-address">
+                                        <strong>AK Shoe House       </strong>,Shirkatoli, Namkum Ranchi,Jharkhand-834010
+                                    </div>
+                                    <div class="invoice-details">
+                                        <span class="text-gray">GST No:</span> <b>1231fd2541asd2511 </b>
+                                        <h5><span class="bold-text">Invoice No:</span> <B> {{sale.invoice_number}} </b></h5>
+                                        <h6><span class="bold-text">Date:</span> <b>{{ sale.sale_date|date:'d-m-Y'}}</b> </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="text-sm-end">
+                                    <div class="row text-sm-end"> 
+                                        <h4 align="left" ><strong>Invoice To </strong></h4>
+                                        <table  class=" ml-2 dt-responsive nowrap w-100">   
+                                            <thead>
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-group position-relative text-sm-end">
+                                                            <label class="form-label"><strong> Contact No.</strong> </label>
+                                                            
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="form-group position-relative">
+                                                            <label class="form-label"><strong> : </strong></label>
+                                                            
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="position-relative text-sm-center m-2">
+                                                            {{ sale.customer.contact_number }} 
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-group position-relative text-sm-end ">
+                                                            <label class="form-label"><strong> Name </strong> </label>
+                                                            
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="form-group position-relative">
+                                                            <label class="form-label"><strong> :</strong> </label>
+                                                            
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class=" position-relative text-sm-center m-2">
+                                                            {{ sale.customer.name }} 
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-group position-relative text-sm-end">
+                                                            <label class="form-label"><strong>  Email </strong></label>
+                                                             
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="form-group position-relative">
+                                                            <label class="form-label"><strong> :  </strong></label>
+                                                             
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="position-relative text-sm-center m-2">
+                                                            {{ sale.customer.email }} 
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-group position-relative  text-sm-end ">
+                                                            <label class="form-label"><strong> Address </strong></label>
+                                                             
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="form-group position-relative">
+                                                            <label class="form-label"><strong> :  </strong></label>
+                                                             
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="position-relative text-sm-center m-2">
+                                                            {{ sale.customer.address }} 
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                              
+                                                
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div> 
+                            </div><!-- end col-->
+                        </div>
+                
+                        <div class="row">
+                            <table class="table" id="dynamicTable">
+                                <thead>
+                                    <tr>
+                                        <th width="40%">Footwear</th>
+                                        <th width="15%">Size </th>
+                                        <th width="10%">MRP</th>
+                                        <th width="10%">Quantity</th>
+                                        <th width="10%">Salling Price</th>
+                                        <th width="10%">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detail in sale_details %}
+                                    <tr>
+                                        <td>{{ detail.variant.name }} || {{ detail.variant.footwear.brand.name}} || {{ detail.variant.footwear.category.name }} ||{{ detail.variant.footwear.category.gender }}
+                                            || {{ detail.variant.material.name }} || {{ detail.variant.footwear.style_code }}
+                                        </td>
+                                        <td>{{ detail.size.system }} - {{ detail.size.value }}</td>
+                                        <td>{{ detail.variant.mrp }}</td>
+                                        <td>{{ detail.quantity }}</td>
+                                        <td>{{ detail.selling_price }}</td>
+                                        <td>{{ detail.sub_total_price }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                     
+                            
+                        </div>
+                        <div class="text-sm-end">
+                            <div class="row col-4 offset-8"> 
+                                <table  class=" ml-2 dt-responsive nowrap w-100 text-sm-end">
+                                    <thead>
+                                        <tr>
+                                            <td>
+                                                <div class="form-group position-relative text-sm-end">
+                                                    <label class="form-label"><strong> Grand Total </strong> </label>
+                                                    
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="form-group position-relative">
+                                                    <label class="form-label"><strong> : </strong></label>
+                                                    
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="position-relative text-sm-center m-2">
+                                                     <b>{{ sale.total_amount }} </b>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="form-group position-relative text-sm-end" >
+                                                        <label class="form-label"><strong> GST  </strong> </label>
+                                                        
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="form-group position-relative">
+                                                        <label class="form-label"><strong>: </strong> </label>
+                                                        
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="position-relative text-sm-center m-2">
+                                                        {{ sale.gst.gst_percentage }}%
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="form-group position-relative text-sm-end ">
+                                                        <label class="form-label"><strong> GST Amount  </strong> </label>
+                                                        
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="form-group position-relative">
+                                                        <label class="form-label"><strong>: </strong> </label>
+                                                        
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="position-relative text-sm-center m-2 ">
+                                                        {{ sale.gst_amount }} 
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="form-group position-relative text-sm-end">
+                                                    <label class="form-label"><strong> Discount </strong></label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="form-group position-relative">
+                                                    <label class="form-label"><strong> : </strong></label>
+                                                     
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="position-relative text-sm-center m-2">
+                                                   <b>{{ sale.discount }}</b>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                      
+                                        <tr>
+                                            <td>
+                                                <div class="form-group position-relative text-sm-end">
+                                                    <label class="form-label"><strong> Payable </strong></label>
+                                                     
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="form-group position-relative">
+                                                    <label class="form-label"><strong> :</strong></label>
+                                                     
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="position-relative text-sm-center m-2">
+                                                    <b> {{ sale.payable_amount }}</b>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="form-group position-relative text-sm-end">
+                                                    <label class="form-label"><strong> Payment Mode </strong></label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="form-group position-relative">
+                                                    <label class="form-label"><strong> :</strong></label>
+                                                     
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="position-relative text-sm-center m-2">
+                                                    <b> {{ sale.payment_method }}</b>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div> 
+                        <div class="d-flex justify-content-end align-items-center">
+                            <div class="col-lg-5 mt-1 ms-3 align-items-center" >
+                                <div>
+                                    <label><strong><b> Notes :</b></strong></label>
+                                     {{ sale.notes }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                       
+                <div class="row">   
+                    <div class="col-md-12 col-sm-12 col-xs-12 m-2"  align="center">
+                        {% if action == 'Close' %}
+                        <center>
+                            <button class="btn btn-primary" onclick="printDiv('PrintDive')">Print Invoice</button>
+                            <a href="{% url 'sale' 'List' 'None' %}" class="btn btn-dark" > Go Back</a>
+                        </center>
+                       {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div> <!-- end col -->
+    </div> <!-- end row -->
+
+
+{% endblock content %}
+{% block jsfile %} 
+<script src="{% static 'assets/js/pages/form-validation.init.js' %}"></script>
+<script src="{% static 'assets/js/pages/form-advanced.init.js' %}"></script>
+{% endblock jsfile %}

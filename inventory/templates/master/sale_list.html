@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+
+
+<div class="container-fluid">
+
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0 font-size-18">Sale List</h4>
+
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <div class="search-box me-2 mb-2 d-inline-block">
+                                <div class="position-relative">
+                                     <input type="text" class="form-control" placeholder="Search...">
+                                    <i class="bx bx-search-alt search-icon"></i> 
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <a href=" {% url 'sale' 'Save' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-plus me-1"></i> Add New Sale</a>
+                                </div> 
+                        </div><!-- end col-->
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle table-nowrap table-check">
+                            <thead class="table-light">
+                                <tr>
+                                    
+                                    <th class="align-middle">#</th>
+                                    <th class="align-middle">Customer Number</th>
+                                    <th class="align-middle">Invoice Number</th>
+                                    <th class="align-middle">Sale Date</th>
+                                    <th class="align-middle">Payment Mode</th>
+                                    <th class="align-middle">GST Type</th>
+                                    <th class="align-middle">GST Amount</th>
+                                    <th class="align-middle">Descount Amount</th>
+                                    <th class="align-middle">Total Amount</th>
+                                    <th class="align-middle">Action</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% for data in sale_list %}
+                                <tr>
+                                    <td>{{ forloop.counter}} </td>
+                                    <td>{{data.customer.contact_number}}</td>
+                                    <td>{{data.invoice_number}}</td>
+                                    <td>{{data.sale_date|date:'d-m-Y'}}</td>
+                                    <td>{{data.payment_method}}</td>
+                                    <td>{{data.gst.gst_type}}</td>
+                                    <td> {{data.gst_amount}} </td>
+                                    <td> {{data.discount}} </td>    
+                                    <td> {{data.total_amount}}  </td>
+                                    
+                                  
+                                    <td>
+                                        <div class="d-flex gap-3">
+                                            <a href="{% url 'sale' 'Close' data.id %}" class="text-warning"><i class="mdi mdi-eye font-size-18"></i></a>
+                                            {% comment %} <a href="{% url 'footwear' 'Update' data.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a> {% endcomment %}
+                                            <a href="#" class="pull-right text-danger" data-bs-toggle="modal" data-bs-target=".ActiveDeactiveModel{{ data.id }}" title="Add New Brand">
+                                                <i class="mdi mdi-delete font-size-18"></i>
+                                            </a>
+                                        </div>
+                                        <!-- Modal -->
+                                        <div class="modal fade ActiveDeactiveModel{{ data.id }}" tabindex="-1" role="dialog" aria-labelledby="ActiveDeactiveModel{{ data.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                
+                                                <form id="form2" method="POST" class="custom-validation" enctype="multipart/form-data" >   
+                                                    {% csrf_token %}   
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="ActiveDeactiveModel{{ data.id }}">{% if data.status == 1 %}Deactivate Confirmation  {% else %}Activate Confirmation {% endif %}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        
+                                                        <div class="table-responsive w-100">
+                                                            <table class="table align-middle  w-100">
+                                                            
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> Purchase Invoice</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.po_number}}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> Purchase Date</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.po_date|date:'d-m-Y'}}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col"> Total Amount</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.total_amount}}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    
+                                                        <button class="btn {% if data.status == 1 %}  btn-danger {% else %}  btn-success {% endif %}" {% if data.status == 1 %} name="DelData" {% else %} name="ActData" {% endif %}  type="submit" value="{{ data.id }}">
+                                                            {% if data.status == 1 %} Deactivate {% else %} Activate {% endif %}
+                                                        </button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            </div>
+                                        </div>
+                                        <!-- end modal -->
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div> 
+
+
+{% endblock content %}
+{% block jsfile %}{% endblock jsfile %}

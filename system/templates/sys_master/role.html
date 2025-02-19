@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+
+<div class="container-fluid">
+        <!-- start page title -->
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0 font-size-18">Role</h4>
+                </div>
+            </div>
+        </div>
+
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+     <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <div class="search-box me-2 mb-2 d-inline-block">
+                                <div class="position-relative">
+                                    {% comment %} <input type="text" class="form-control" placeholder="Search...">
+                                                <i class="bx bx-search-alt search-icon"></i> 
+                                    {% endcomment %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <a href="{% url 'role' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Role List</a>
+                                </div> 
+                        </div><!-- end col-->
+                    </div>
+                    <form name="form1" class="custom-validation" method="POST" enctype="multipart/form-data" id="form1">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>Role Name</b></strong>
+                                        
+                                    </label>
+                                    {{ form.name }}
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="col-lg-3  mt-1">
+                                <div class="form-group"><label><strong><b>Description</b></strong></label>
+                                {{form.description}}
+                                </div>
+                            </div>
+                   
+                            <div class="col-lg-3 mt-4">
+                                {% if action != 'Close' %}
+                                <center>
+                                    <button type="submit" name="role" class="btn btn-info waves-effect" >{{action}}</button>
+                                    <button type="reset" class="btn btn-secondary waves-effect"> Reset </button>
+                                </center>
+                               {% endif %}
+                            </div>
+                        </div>
+                    </form>
+
+                    
+                </div>
+            </div>
+        </div> <!-- end col -->
+    </div> <!-- end row -->
+
+
+
+
+    {% endblock content %}
+    {% block jsfile %} <script src="{% static 'assets/js/pages/form-validation.init.js' %}"></script>{% endblock jsfile %}
