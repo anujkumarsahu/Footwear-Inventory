@@ -8,7 +8,7 @@ from django.core.validators import FileExtensionValidator,MinValueValidator, Max
 
 
 class BaseModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.SmallIntegerField(default=1)  
 
@@ -125,30 +125,7 @@ class Footwear(BaseModel):
         super().save(*args, **kwargs)
 
 
-#### currentlly not use this table 
-# class FootwearImage(BaseModel):
-#     id = models.BigAutoField(primary_key=True)
-#     footwear = models.ForeignKey(Footwear, on_delete=models.CASCADE)
-#     image = models.ImageField( upload_to='footwear_images/',
-#       validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
-#     )
 
-#     def __str__(self):
-#         return f"{self.footwear.category.name} - Image {self.id}"
-    
-#     class Meta:
-#         db_table = 'tbl_footwear_image'
-#         app_label = 'inventory'
-#         managed = False
-        
-    
-    # def save(self, *args, **kwargs):
-    #     base_filename = self.footwear.category.name.replace(" ", "_")  
-    #     existing_images_count = FootwearImage.objects.filter(footwear=self.footwear).count()
-    #     ext = os.path.splitext(self.image.name)[1]
-    #     new_image_name = f"{base_filename}_{existing_images_count + 1}{ext}"
-    #     self.image.name = new_image_name
-    #     super().save(*args, **kwargs)
 # Supplier Management
 class Supplier(BaseModel):
     id = models.BigAutoField(primary_key=True)
@@ -254,18 +231,6 @@ class FootwearVariant(BaseModel):
   
 
 
-    
-
-# class PurchaseDetail(BaseModel):
-#     id = models.BigAutoField(primary_key=True)
-#     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
-#     variant = models.ForeignKey(FootwearVariant, on_delete=models.CASCADE)
-        
-#     class Meta:
-#         db_table = 'tbl_purchase_detail'
-#         app_label = 'inventory'
-#         managed = False
-
 
 
 
@@ -286,7 +251,7 @@ class Customer(BaseModel):
         managed = False
         
 
-class Sale(models.Model):
+class Sale(BaseModel):
     PAYMENT_CHOICES = [
         ('CASH', 'Cash'),
         ('CARD', 'Card'),
@@ -316,7 +281,7 @@ class Sale(models.Model):
         
 
 
-class SaleDetail(models.Model):
+class SaleDetail(BaseModel):
     id = models.BigAutoField(primary_key=True)
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='sale_details')
     variant = models.ForeignKey(FootwearVariant, on_delete=models.CASCADE)
@@ -324,9 +289,8 @@ class SaleDetail(models.Model):
     size = models.ForeignKey(Size, on_delete=models.CASCADE)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
     sub_total_price = models.DecimalField(max_digits=15, decimal_places=2)
-    
     def __str__(self):
-        return f"Sale ID: {self.sale.invoice_number} - Variant: {self.variant} - Qty: {self.quantity}"
+        return f"Sale : {self.sale.invoice_number} - Variant: {self.variant} - Qty: {self.quantity}"
 
     class Meta:
         db_table = 'tbl_sale_detail'
@@ -334,26 +298,7 @@ class SaleDetail(models.Model):
         managed = False
         
     
-            
-# class SaleDetail(BaseModel):
-#     id = models.BigAutoField(primary_key=True)
-#     sale = models.ForeignKey(Sale, on_delete=models.CASCADE,)
-#     variant = models.ForeignKey(FootwearVariant, on_delete=models.CASCADE)
-#     mrp = models.DecimalField(max_digits=10, decimal_places=2)
-#     quantity = models.PositiveIntegerField()
-#     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
-#     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-#     def save(self, *args, **kwargs):
-#         if self.variant.stock_quantity < self.quantity:
-#             raise ValidationError("Insufficient stock for this variant.")
-#         self.variant.stock_quantity -= self.quantity
-#         self.variant.save()
-#         super().save(*args, **kwargs)
-#     class Meta:
-#         db_table = 'tbl_sale_detail'
-#         app_label = 'inventory'
-#         managed = False
         
 # Return Management
 class Return(BaseModel):

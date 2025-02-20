@@ -219,3 +219,78 @@ def module(request, action, ids=None):
 
     return render(request, template, context)
 
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import MenuUrlMaster, ModuleMaster, UserMaster
+from .forms import MenuUrlMasterForm
+
+def menu(request, action, ids=None):
+    menu_list = None
+    form = MenuUrlMasterForm()
+
+    if action == "Save":
+        if request.method == 'POST':
+            form = MenuUrlMasterForm(request.POST)
+            if form.is_valid():
+                menu_name = form.cleaned_data['menu_name']
+                user = UserMaster.objects.filter(status=1).first()  
+
+                if not MenuUrlMaster.objects.filter(menu_name=menu_name, status=1).exists():
+                    menu_instance = form.save(commit=False)
+                    menu_instance.user = user
+                    menu_instance.save()
+                    messages.success(request, "Menu successfully created.")
+                    return redirect('menu', 'List')  
+                else:
+                    messages.error(request, 'Menu with this name already exists.')
+
+    elif action == 'Update' and ids:
+        menu_instance = get_object_or_404(MenuUrlMaster, id=ids)
+        form = MenuUrlMasterForm(instance=menu_instance)
+
+        if request.method == 'POST':
+            form = MenuUrlMasterForm(request.POST, instance=menu_instance)
+            if form.is_valid():
+                menu_name = form.cleaned_data['menu_name']
+
+                if not MenuUrlMaster.objects.filter(menu_name=menu_name, status=1).exclude(id=ids).exists():
+                    menu_instance = form.save(commit=False)
+                    menu_instance.save()
+                    messages.success(request, "Menu successfully updated.")
+                    return redirect('menu', 'List')
+                else:
+                    messages.error(request, 'Menu with this name already exists.')
+
+    # Close (View Only) Menu
+    elif action == "Close" and ids:
+        menu_instance = get_object_or_404(MenuUrlMaster, id=ids)
+        form = MenuUrlMasterForm(instance=menu_instance)
+
+    
+        for field in form.fields:
+            form.fields[field].widget.attrs['disabled'] = True
+
+        if request.method == 'POST':
+            return redirect('menu', 'List')
+
+    # List all menus
+    elif action == "List":
+        menu_list = MenuUrlMaster.objects.all().order_by('-id')
+
+        if request.method == 'POST':
+            if 'DelData' in request.POST:
+                ids = request.POST['DelData']
+                MenuUrlMaster.objects.filter(id=ids).update(status=0)
+                messages.success(request, "Menu successfully deactivated.")
+            elif 'ActData' in request.POST:
+                ids = request.POST['ActData']
+                MenuUrlMaster.objects.filter(id=ids).update(status=1)
+                messages.success(request, "Menu successfully activated.")
+
+    template = "sys_master/menu_list.html" if action == 'List' else "sys_master/menu.html"
+    
+    context = {'action': action, 'form': form, 'menu_list': menu_list}
+    return render(request, template, context)
+
+

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block title %}<title> Sale List</title>{% endblock title %}
 {% load static %}
 {% block cssfile %}{% endblock cssfile %}
 {% block content %}
@@ -33,10 +34,7 @@
                     <div class="row mb-2">
                         <div class="col-sm-4">
                             <div class="search-box me-2 mb-2 d-inline-block">
-                                <div class="position-relative">
-                                     <input type="text" class="form-control" placeholder="Search...">
-                                    <i class="bx bx-search-alt search-icon"></i> 
-                                </div>
+                                
                             </div>
                         </div>
                         <div class="col-sm-8">
@@ -46,8 +44,8 @@
                         </div><!-- end col-->
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table align-middle table-nowrap table-check">
+                    <div class="row">
+                        <table id="datatable-buttons" class="table w-100">
                             <thead class="table-light">
                                 <tr>
                                     
@@ -56,7 +54,6 @@
                                     <th class="align-middle">Invoice Number</th>
                                     <th class="align-middle">Sale Date</th>
                                     <th class="align-middle">Payment Mode</th>
-                                    <th class="align-middle">GST Type</th>
                                     <th class="align-middle">GST Amount</th>
                                     <th class="align-middle">Descount Amount</th>
                                     <th class="align-middle">Total Amount</th>
@@ -66,13 +63,12 @@
                             </thead>
                             <tbody>
                               {% for data in sale_list %}
-                                <tr>
+                                <tr {% if data.status == 0 %} style="background: #facece;"{% endif %}>
                                     <td>{{ forloop.counter}} </td>
                                     <td>{{data.customer.contact_number}}</td>
                                     <td>{{data.invoice_number}}</td>
                                     <td>{{data.sale_date|date:'d-m-Y'}}</td>
                                     <td>{{data.payment_method}}</td>
-                                    <td>{{data.gst.gst_type}}</td>
                                     <td> {{data.gst_amount}} </td>
                                     <td> {{data.discount}} </td>    
                                     <td> {{data.total_amount}}  </td>
@@ -94,7 +90,7 @@
                                                     {% csrf_token %}   
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="ActiveDeactiveModel{{ data.id }}">{% if data.status == 1 %}Deactivate Confirmation  {% else %}Activate Confirmation {% endif %}</h5>
+                                                        <h5 class="modal-title" id="ActiveDeactiveModel{{ data.id }}">{% if data.status == 1 %}Deactivate Confirmation  {% else %}Activate Confirmation {% endif %} </h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
@@ -105,24 +101,36 @@
                                                                     <tr>
                                                                         <td>
                                                                             <div>
-                                                                            <th scope="col"> Purchase Invoice</th>
+                                                                            <th scope="col"> Invoice</th>
                                                                             </div>
                                                                         </td>
                                                                         <td>
                                                                             <div>
-                                                                                {{data.po_number}}
+                                                                                {{data.invoice_number}}
                                                                             </div>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td>
                                                                             <div>
-                                                                            <th scope="col"> Purchase Date</th>
+                                                                            <th scope="col"> Sale Date</th>
                                                                             </div>
                                                                         </td>
                                                                         <td>
                                                                             <div>
-                                                                                {{data.po_date|date:'d-m-Y'}}
+                                                                                {{data.sale_date|date:'d-m-Y'}}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div>
+                                                                            <th scope="col">Contact Number</th>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div>
+                                                                                {{data.customer.contact_number}}
                                                                             </div>
                                                                         </td>
                                                                     </tr>
@@ -171,4 +179,4 @@
 
 
 {% endblock content %}
-{% block jsfile %}{% endblock jsfile %}
+{% block jsfile %} <script src="{% static 'assets/js/pages/datatables.init.js' %}"></script>{% endblock jsfile %}

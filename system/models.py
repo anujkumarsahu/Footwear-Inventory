@@ -7,8 +7,8 @@ class RoleMaster(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(unique=True, max_length=80)
     description = models.CharField(max_length=200)
-    stampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
-    updatestampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
+    stampdatetime = models.DateTimeField(auto_now=True, auto_now_add=False)
+    updatestampdatetime = models.DateTimeField(auto_now=True, auto_now_add=False)
     status = models.IntegerField(default=1)
     def __str__(self):
         return self.name
@@ -57,8 +57,8 @@ class ModuleMaster(models.Model):
     description = models.CharField(max_length=500)
     module_img = models.FileField(upload_to='module/image', max_length=100)
     user = models.ForeignKey(UserMaster, on_delete=models.CASCADE)
-    stampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
-    updatestampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
+    stampdatetime = models.DateTimeField( auto_now=True, auto_now_add=False)
+    updatestampdatetime = models.DateTimeField( auto_now=True, auto_now_add=False)
     status = models.IntegerField(default=1)
     def __str__(self):
         return self.name
@@ -73,13 +73,14 @@ class MenuUrlMaster(models.Model):
     menu_name = models.CharField(max_length=200)
     url = models.CharField(max_length=200)
     parent_menu = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
-    module = models.ForeignKey(ModuleMaster, verbose_name=_("module"), on_delete=models.CASCADE)
+    module = models.ForeignKey(ModuleMaster, verbose_name= ("module"), on_delete=models.CASCADE)
     user = models.ForeignKey(UserMaster, on_delete=models.CASCADE)
     is_toolbar = models.BooleanField(default=False)
+    menu_icon = models.CharField(max_length=50, null=True)
     order_no = models.PositiveSmallIntegerField(default=1)
     clear_query = models.CharField(max_length=10, default="cmd=clear")
-    stampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
-    updatestampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
+    stampdatetime = models.DateTimeField( auto_now=True, auto_now_add=False)
+    updatestampdatetime = models.DateTimeField(auto_now=True, auto_now_add=False)
     status = models.IntegerField(default=1)
     def __str__(self):
         return self.menu_name
@@ -89,14 +90,15 @@ class MenuUrlMaster(models.Model):
         app_label = 'system'
         managed = False
 
+
 class MenuUrlPermissionMaster(models.Model):
     id = models.BigAutoField(primary_key=True)
     menu = models.ForeignKey(MenuUrlMaster, on_delete=models.CASCADE)
     module = models.ForeignKey(ModuleMaster, on_delete=models.CASCADE)
     user = models.ForeignKey(UserMaster, on_delete=models.CASCADE, null=True, blank=True)
     role = models.ForeignKey(RoleMaster, on_delete=models.CASCADE, null=True, blank=True)
-    stampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
-    updatestampdatetime = models.DateTimeField(  auto_now=False, auto_now_add=False)
+    stampdatetime = models.DateTimeField( auto_now=True, auto_now_add=False)
+    updatestampdatetime = models.DateTimeField( auto_now=True, auto_now_add=False)
     status = models.IntegerField(default=1)
     def __str__(self):
         return self.menu.menu_name
@@ -115,8 +117,8 @@ class MenuUrlPermissionDetails(models.Model):
     is_close = models.BooleanField(default=False)
     is_list = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
-    stampdatetime = models.DateTimeField( auto_now=False, auto_now_add=False)
-    updatestampdatetime = models.DateTimeField( auto_now=False, auto_now_add=False)
+    stampdatetime = models.DateTimeField(auto_now=True, auto_now_add=False)
+    updatestampdatetime = models.DateTimeField(auto_now=True, auto_now_add=False)
     status = models.IntegerField(default=1)
     def __str__(self):
         return str(self.id)

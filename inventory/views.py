@@ -355,7 +355,7 @@ def purchase(request, action, ids=None):
         
         
     elif action == "List":
-        purchase_list = Purchase.objects.all().filter(status=1).order_by('-id')
+        purchase_list = Purchase.objects.all().order_by('-id')
         
         if request.method == 'POST':
             if 'DelData' in request.POST:
@@ -477,6 +477,19 @@ def sale(request, action, ids=None):
         
     elif action == "List":
         sale_list = Sale.objects.all().order_by('-id')
+        print('sale :',sale_list.values())
+        if request.method == 'POST':
+            if 'DelData' in request.POST:
+                DelData = request.POST['DelData']
+                Sale.objects.filter(id = DelData ).update(status = 0)
+                messages.error(request,'Data Successfully Deactivate.')
+                return redirect('sale', 'List', None)
+            elif 'ActData' in request.POST:
+                ActData = request.POST['ActData']
+                Sale.objects.filter(id = ActData ).update(status = 1)
+                messages.success(request,'Data Successfully Activate.')
+                return redirect('sale', 'List', None)
+            
         template = "master/sale_list.html"
         context = {'sale_list': sale_list, 'action': action}
         return render(request, template, context)
@@ -495,8 +508,7 @@ def sale(request, action, ids=None):
                 return redirect('sale', 'List', None)
 
     elif action == "Close" and ids:
-        sale = (Sale.objects.select_related('customer', 'gst').prefetch_related('sale_details__variant', 'sale_details__size')
-                .get(id=ids))
+        sale = (Sale.objects.select_related('customer', 'gst').prefetch_related('sale_details__variant', 'sale_details__size').get(id=ids))
         sale_details = sale.sale_details.all()
         template = "master/sale_view.html"
         context = {'sale': sale, 'sale_details': sale_details, 'action': action}

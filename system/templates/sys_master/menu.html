@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+
+<div class="container-fluid">
+        <!-- start page title -->
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0 font-size-18">Module </h4>
+                </div>
+            </div>
+        </div>
+
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Please fix the following errors:</strong>
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ field|title }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+     <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <div class="search-box me-2 mb-2 d-inline-block">
+                                <div class="position-relative">
+                                    {% comment %} <input type="text" class="form-control" placeholder="Search...">
+                                                <i class="bx bx-search-alt search-icon"></i> 
+                                    {% endcomment %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <a href="{% url 'module' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Module List</a>
+                                </div> 
+                        </div><!-- end col-->
+                    </div>
+                    <form name="form1" class="custom-validation" method="POST" enctype="multipart/form-data" id="form1">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b> Menu Name</b></strong>
+                                    </label>
+                                    {{ form.menu_name }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b> Module</b></strong>
+                                    </label>
+                                    {{ form.module }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>Parent Menu</b></strong>
+                                    </label>
+                                    {{ form.parent_menu }}
+                                </div>
+                            </div>
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b> URL</b></strong>
+                                    </label>
+                                    {{ form.url }}
+                                </div>
+                            </div>
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b> Menu Icon</b></strong>
+                                    </label>
+                                    {{ form.menu_icon }}
+                                </div>
+                            </div>
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b> Order No</b></strong>
+                                    </label>
+                                    {{ form.order_no }}
+                                </div>
+                            </div>
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b>Toolbar Status</b></strong>
+                                    </label>
+                                    <div class="form-check form-switch d-flex align-items-center">
+                                        {{ form.is_toolbar }}
+                                        <label class="form-check-label ms-2" for="{{ form.is_toolbar.id_for_label }}">
+                                            Enable
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="col-lg-3 mt-1">
+                                <div class="form-group">
+                                    <label>
+                                        <strong><b> Clear Query</b></strong>
+                                    </label>
+                                    {{ form.clear_query }}
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <center>
+                                    <button type="submit" name="user" class="btn btn-info waves-effect">{{ action }}</button>
+                                    {% if action != 'Close'  or action != 'Update' %}
+                                        <button type="reset" class="btn btn-secondary waves-effect"> Reset </button>
+                                    {% endif %}
+                                </center>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    
+                </div>
+            </div>
+        </div> <!-- end col -->
+    </div> <!-- end row -->
+
+    {% comment %} <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> {% endcomment %}
+
+<script>
+    $(document).ready(function() {
+        function loadParentMenus(selectedModule, selectedParentMenu) {
+            var parentDropdown = $("#id_parent_menu");
+    
+            // Clear previous options
+            parentDropdown.html('<option value="">Self</option>');
+    
+            if (selectedModule) {
+                alert(selectedModule);
+                $.ajax({
+                    url: "{% url 'get_parent_menus' %}",  
+                    type: "POST",
+                    data: {
+                        module_id: selectedModule,
+                        csrfmiddlewaretoken: "{{ csrf_token }}" 
+                    },
+                    success: function(response) {
+                        if (response.menus) {
+                            $.each(response.menus, function(index, menu) {
+                                var isSelected = (menu.id == selectedParentMenu) ? 'selected' : '';
+                                parentDropdown.append('<option value="' + menu.id + '" ' + isSelected + '>' + menu.name + '</option>');
+                            });
+                        }
+                    },
+                    error: function() {
+                        alert("Failed to fetch menus. Please try again.");
+                    }
+                });
+            }
+        }
+    
+        // Event: When Module Dropdown Changes
+        $("#id_module").change(function() {
+            var moduleId = $(this).val();
+
+            loadParentMenus(moduleId, null);
+        });
+    
+        var selectedModule = $("#id_module").val();
+        var selectedParentMenu = "{{ form.parent_menu.value|default:'' }}";  
+        if (selectedModule) {
+            loadParentMenus(selectedModule, selectedParentMenu);
+        }
+    });
+</script>
+    
+
+
+    {% endblock content %}
+    {% block jsfile %} <script src="{% static 'assets/js/pages/form-validation.init.js' %}"></script>{% endblock jsfile %}

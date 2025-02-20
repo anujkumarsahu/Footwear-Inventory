@@ -12,8 +12,8 @@ urlpatterns = [
     path('get-gst-percentage/', ajax.get_gst_percentage, name='get_gst_percentage'),
 
      
-]
+]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# if settings.DEBUG:
+#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
  
