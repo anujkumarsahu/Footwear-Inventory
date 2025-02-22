@@ -38,7 +38,7 @@
                         </div>
                         <div class="col-sm-8">
                             <div class="text-sm-end">
-                                <a href=" {% url 'module' 'Save' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-plus me-1"></i> Add New Module</a>
+                                <a href=" {% url 'menu' 'Save' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-plus me-1"></i> Add New Menu</a>
                                 </div> 
                         </div>
                     </div>
@@ -49,31 +49,25 @@
                                 <tr>
                                     
                                     <th class="align-middle">#</th>
-                                    <th class="align-middle"> Module Name</th>
-                                    <th class="align-middle">DB Name</th>
-                                    <th class="align-middle">Schema Name</th>
-                                    <th class="align-middle">Password</th>
-                                    <th class="align-middle">User</th>
+                                    <th class="align-middle"> Menu Name</th>
+                                    <th class="align-middle">Perant Menu Name</th>
                                     <th class="align-middle">Action</th>
                                     
                                 </tr>
                             </thead>
                             <tbody>
-                              {% for data in module_list %}
+                              {% for data in menu_list %}
                                 <tr>
                                     <td>{{ forloop.counter}} </td>
-                                    <td> {{data.name}} </td>    
-                                    <td> {{data.db_name}} </td>    
-                                    <td> {{data.db_schema_name}} </td>    
-                                    <td> {{data.db_pass}} </td>    
-                                    <td> {{data.user.name}} </td> 
+                                    <td> {{data.menu_name}} </td>    
+                                    <td> {{data.parent_menu.menu_name}} </td> 
                                     
                                   
                                     <td>
                                         <div class="d-flex gap-3">
-                                            <a href="{% url 'module' 'Close' data.id %}" class="text-warning"><i class="mdi mdi-eye font-size-18"></i></a>
-                                            <a href="{% url 'module' 'Update' data.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
-                                            <a href="#" class="pull-right text-danger" data-bs-toggle="modal" data-bs-target=".ActiveDeactiveModel{{ data.id }}" title="Add New Brand">
+                                            <a href="{% url 'menu' 'Close' data.id %}" class="text-warning"><i class="mdi mdi-eye font-size-18"></i></a>
+                                            <a href="{% url 'menu' 'Update' data.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                            <a href="#" class="pull-right text-danger" data-bs-toggle="modal" data-bs-target=".ActiveDeactiveModel{{ data.id }}" title="Add New Menu">
                                                 <i class="mdi mdi-delete font-size-18"></i>
                                             </a>
                                         </div>
@@ -96,7 +90,7 @@
                                                                     <tr>
                                                                         <td>
                                                                             <div>
-                                                                            <th scope="col"> Module Name  </th>
+                                                                            <th scope="col"> Menu Name  </th>
                                                                             </div>
                                                                         </td>
                                                                         <td>
@@ -106,14 +100,14 @@
                                                                         </td>
                                                                         <td>
                                                                             <div>
-                                                                                {{data.name}}
+                                                                                {{data.menu_name}}
                                                                             </div>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td>
                                                                             <div>
-                                                                            <th scope="col"> DB Schema Name</th>
+                                                                            <th scope="col">Perant Menu Name</th>
                                                                             </div>
                                                                         </td>
                                                                         <td>
@@ -123,7 +117,7 @@
                                                                         </td>
                                                                         <td>
                                                                             <div>
-                                                                                {{data.db_schema_name}}
+                                                                                {{data.parent_menu.menu_name}}
                                                                             </div>
                                                                         </td>
                                                                     </tr>

@@ -9,7 +9,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                    <h4 class="mb-sm-0 font-size-18">Module </h4>
+                    <h4 class="mb-sm-0 font-size-18">Menu </h4>
                 </div>
             </div>
         </div>
@@ -52,7 +52,7 @@
                         </div>
                         <div class="col-sm-8">
                             <div class="text-sm-end">
-                                <a href="{% url 'module' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Module List</a>
+                                <a href="{% url 'menu' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Menu List</a>
                                 </div> 
                         </div><!-- end col-->
                     </div>
@@ -85,14 +85,13 @@
                                     {{ form.parent_menu }}
                                 </div>
                             </div>
-                            <div class="col-lg-3 mt-1">
+                            <div class="col-lg-3 mt-1" id="url_id" style="disabled: true;">
                                 <div class="form-group">
-                                    <label>
-                                        <strong><b> URL</b></strong>
-                                    </label>
+                                    <label><strong><b> URL</b></strong></label>
                                     {{ form.url }}
                                 </div>
                             </div>
+                            
                             <div class="col-lg-3 mt-1">
                                 <div class="form-group">
                                     <label>
@@ -150,54 +149,75 @@
         </div> <!-- end col -->
     </div> <!-- end row -->
 
-    {% comment %} <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> {% endcomment %}
 
-<script>
-    $(document).ready(function() {
-        function loadParentMenus(selectedModule, selectedParentMenu) {
-            var parentDropdown = $("#id_parent_menu");
+    <script>
+        $(document).ready(function() {
+            function loadParentMenus(selectedModule, selectedParentMenu) {
+                var parentDropdown = $("#id_parent_menu");
     
-            // Clear previous options
-            parentDropdown.html('<option value="">Self</option>');
+                // Clear previous options
+                parentDropdown.html('<option value="">Self</option>');
     
-            if (selectedModule) {
-                alert(selectedModule);
-                $.ajax({
-                    url: "{% url 'get_parent_menus' %}",  
-                    type: "POST",
-                    data: {
-                        module_id: selectedModule,
-                        csrfmiddlewaretoken: "{{ csrf_token }}" 
-                    },
-                    success: function(response) {
-                        if (response.menus) {
-                            $.each(response.menus, function(index, menu) {
-                                var isSelected = (menu.id == selectedParentMenu) ? 'selected' : '';
-                                parentDropdown.append('<option value="' + menu.id + '" ' + isSelected + '>' + menu.name + '</option>');
-                            });
+                if (selectedModule) {
+                    $.ajax({
+                        url: "{% url 'get_parent_menus' %}",  
+                        type: "POST",
+                        data: {
+                            module_id: selectedModule,
+                            csrfmiddlewaretoken: "{{ csrf_token }}" 
+                        },
+                        success: function(response) {
+                            if (response.menus) {
+                                $.each(response.menus, function(index, menu) {
+                                    var isSelected = (menu.id == selectedParentMenu) ? 'selected' : '';
+                                    parentDropdown.append('<option value="' + menu.id + '" ' + isSelected + '>' + menu.name + '</option>');
+                                });
+                            }
+                            toggleUrlField(); // Call URL toggle function after loading menus
+                        },
+                        error: function() {
+                            alert("Failed to fetch menus. Please try again.");
                         }
-                    },
-                    error: function() {
-                        alert("Failed to fetch menus. Please try again.");
-                    }
-                });
+                    });
+                }
             }
-        }
     
-        // Event: When Module Dropdown Changes
-        $("#id_module").change(function() {
-            var moduleId = $(this).val();
 
-            loadParentMenus(moduleId, null);
-        });
+            function toggleUrlField() {
+                var parentId = $("#id_parent_menu").val();
+            
+                if (!parentId || parentId === "") {
+                    $("#id_url").prop("readonly", true).prop("required", false).val(""); 
+                    $("#id_menu_icon").prop("required", True); 
+                } else {
+                    $("#id_url").prop("readonly", false).prop("required", true);
+                    $("#id_menu_icon").prop("required", flase).val("");
+                }
+            }
+            
+            
     
-        var selectedModule = $("#id_module").val();
-        var selectedParentMenu = "{{ form.parent_menu.value|default:'' }}";  
-        if (selectedModule) {
-            loadParentMenus(selectedModule, selectedParentMenu);
-        }
-    });
-</script>
+            // Event: When Module Dropdown Changes
+            $("#id_module").on("change", function() {
+                var moduleId = $(this).val();
+                loadParentMenus(moduleId, null);
+            });
+    
+            // Event: Show/Hide URL Field Based on Parent Menu Selection
+            $("#id_parent_menu").on("change", function() {
+                toggleUrlField();
+            });
+    
+            // Load menus when the page loads (for edit case)
+            var selectedModule = $("#id_module").val();
+            var selectedParentMenu = "{{ form.parent_menu.value|default:'' }}";  
+            if (selectedModule) {  
+                loadParentMenus(selectedModule, selectedParentMenu);
+            } else {
+                toggleUrlField(); // Call on page load
+            }
+        });
+    </script>
     
 
 

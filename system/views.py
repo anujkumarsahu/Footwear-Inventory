@@ -220,10 +220,6 @@ def module(request, action, ids=None):
     return render(request, template, context)
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from .models import MenuUrlMaster, ModuleMaster, UserMaster
-from .forms import MenuUrlMasterForm
 
 def menu(request, action, ids=None):
     menu_list = None
@@ -231,6 +227,7 @@ def menu(request, action, ids=None):
 
     if action == "Save":
         if request.method == 'POST':
+            print("request:",request.POST)
             form = MenuUrlMasterForm(request.POST)
             if form.is_valid():
                 menu_name = form.cleaned_data['menu_name']
@@ -241,7 +238,7 @@ def menu(request, action, ids=None):
                     menu_instance.user = user
                     menu_instance.save()
                     messages.success(request, "Menu successfully created.")
-                    return redirect('menu', 'List')  
+                    return redirect('menu', 'List', None)  
                 else:
                     messages.error(request, 'Menu with this name already exists.')
 
@@ -258,7 +255,7 @@ def menu(request, action, ids=None):
                     menu_instance = form.save(commit=False)
                     menu_instance.save()
                     messages.success(request, "Menu successfully updated.")
-                    return redirect('menu', 'List')
+                    return redirect('menu', 'List',None)
                 else:
                     messages.error(request, 'Menu with this name already exists.')
 
@@ -272,7 +269,7 @@ def menu(request, action, ids=None):
             form.fields[field].widget.attrs['disabled'] = True
 
         if request.method == 'POST':
-            return redirect('menu', 'List')
+            return redirect('menu', 'List',None)
 
     # List all menus
     elif action == "List":
@@ -291,6 +288,22 @@ def menu(request, action, ids=None):
     template = "sys_master/menu_list.html" if action == 'List' else "sys_master/menu.html"
     
     context = {'action': action, 'form': form, 'menu_list': menu_list}
+    return render(request, template, context)
+
+
+
+
+def permissions(request):
+    list = None
+    form = MenuUrlPermissionMasterForm()
+
+    if request.method == 'POST':
+        form = MenuUrlPermissionMasterForm(request.POST)
+        if form.is_valid():
+            module_id = form.cleaned_data['module']
+            list = MenuUrlPermissionMaster.objects.filter(status=1,module_id=module_id).order_by('-id')
+    template = "sys_master/menu_url_permisstions.html" 
+    context = {'form': form, 'list': list}
     return render(request, template, context)
 
 

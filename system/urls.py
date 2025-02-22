@@ -11,6 +11,7 @@ urlpatterns = [
     path("module/<str:action>/<str:ids>",views.module,name="module"),
     path("menu/<str:action>/<str:ids>",views.menu,name="menu"),
     path("get_parent_menus/",ajex.get_parent_menus,name="get_parent_menus"),
+    path("permissions/",views.permissions,name="permissions"),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
