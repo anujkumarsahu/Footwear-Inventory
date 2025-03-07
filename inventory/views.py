@@ -6,7 +6,7 @@ from django.db.models import Prefetch
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 # Create your views here.
 
-def index(request):
+def inv_index(request):
     return render(request,'master/index.html')
 
 

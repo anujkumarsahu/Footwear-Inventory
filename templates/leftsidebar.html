@@ -1,4 +1,90 @@
 {% load static %}
+ <div class="vertical-menu">
+    <div data-simplebar class="h-100">
+        <div id="sidebar-menu">
+            <ul class="metismenu list-unstyled" id="side-menu">
+                <li class="menu-title" key="t-menu">Menu</li>
+
+                {% for parent_id, parent_menu in request.session.menu_structure.items %}
+                    <li>
+                        <a href="javascript:void(0);" 
+                           class="{% if parent_menu.children %}has-arrow{% endif %} waves-effect">
+                            {% if parent_menu.icon %}
+                            <i class="fas fa-folder"></i>
+                            {% else %}
+                                <i class="fas fa-folder"></i>
+                            {% endif %}
+                            <span key="t-{{ parent_menu.name }}">{{ parent_menu.name }}</span>
+                        </a>
+
+                        {% if parent_menu.children %}
+                            <ul class="sub-menu" aria-expanded="false">
+                                {% for child in parent_menu.children %}
+                                    {% if child.url == 'index' %}
+                                        <li>
+                                            <a href="{% url child.url %}" key="t-{{ child.name }}">{{ child.name }}</a>
+                                        </li>
+                                    {% else %}
+                                        {% with action=child.action ids=child.ids|default:"0" %}
+                                            <li>
+                                                <a href="{% url child.url action ids %}?{{ child.clear_query }}" 
+                                                   key="t-{{ child.name }}">{{ child.name }}</a>
+                                            </li>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div> 
+
+{% comment %} 
+<div class="vertical-menu">
+
+    <div data-simplebar class="h-100">
+
+        <!--- Sidemenu -->
+        <div id="sidebar-menu">
+            <!-- Left Menu Start -->
+            <ul class="metismenu list-unstyled" id="side-menu">
+                {% for parent_id, parent_menu in request.session.menu_structure.items %}
+                <li>
+                    <a href="javascript: void(0);" class="has-arrow waves-effect">
+                        {% if parent_menu.icon %}
+                            {{parent_menu.icon}}
+                        {% else %}
+                              <i class="bx bx-home-circle"></i> 
+                            {% endif %}
+                        <span key="t-{{ parent_menu.name }}">{{ parent_menu.name }}</span>
+                    </a>
+                    {% if parent_menu.children %}
+
+                    <ul class="sub-menu" aria-expanded="false">
+                        {% for child in parent_menu.children %}
+                            {% if child.url == 'index' %}
+                            <li><a href="{% url child.url %}" key="t-{{ child.name }}">{{ child.name }}</a></li>
+                            {% else %}
+                            {% with action=child.action ids=child.ids|default:"0" %}
+                                <li><a href="{% url child.url action ids %}?{{ child.clear_query }}" key="{{ child.name }}">{{ child.name }}</a></li>
+                             {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+                {% endfor %}
+               
+            </ul>
+        </div>
+        <!-- Sidebar -->
+    </div>
+</div>  {% endcomment %}
+
+{% comment %} 
 <div class="vertical-menu">
 
     <div data-simplebar class="h-100">
@@ -393,4 +479,4 @@
         </div>
         <!-- Sidebar -->
     </div>
-</div>
+</div> {% endcomment %}

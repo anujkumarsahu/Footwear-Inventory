@@ -115,7 +115,7 @@ class MenuUrlPermissionDetails(models.Model):
     is_save = models.BooleanField(default=False)
     is_update = models.BooleanField(default=False)
     is_close = models.BooleanField(default=False)
-    is_list = models.BooleanField(default=True)
+    is_list = models.BooleanField(default=False)
     is_delete = models.BooleanField(default=False)
     stampdatetime = models.DateTimeField(auto_now=True, auto_now_add=False)
     updatestampdatetime = models.DateTimeField(auto_now=True, auto_now_add=False)
@@ -140,10 +140,8 @@ class ViewMenuUrlPermission(models.Model):
     menu_name = models.CharField(max_length=50)
     parent_menu_id = models.IntegerField()
     parent_menu_name = models.CharField(max_length=50)
-    permission_id = models.IntegerField()
+    menu_order_no = models.IntegerField()
     permission_detail_id = models.IntegerField()
-    menu_status = models.IntegerField()
-    user_status = models.IntegerField()
     permisstion_status = models.IntegerField()
     permission_dtl_status = models.IntegerField()
     is_save = models.BooleanField(default=False)
@@ -151,12 +149,11 @@ class ViewMenuUrlPermission(models.Model):
     is_close = models.BooleanField(default=False)
     is_list = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
-
     def __str__(self):
         return str(self.id)
 
     class Meta:
         db_table = 'view_menu_url_permission'
         app_label = 'system'
-        managed = False  # Since this is a view, don't create a table for it.
+        managed = False  
        

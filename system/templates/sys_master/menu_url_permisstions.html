@@ -26,7 +26,6 @@
     {% endif %}
     {% if form.errors %}
         <div class="alert alert-danger">
-            <strong>Please fix the following errors:</strong>
             <ul>
                 {% for field, errors in form.errors.items %}
                     {% for error in errors %}
@@ -34,6 +33,16 @@
                     {% endfor %}
                 {% endfor %}
             </ul>
+        </div>
+    {% endif %}
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
         </div>
     {% endif %}
      <div class="row">
@@ -52,62 +61,171 @@
                         </div>
                         <div class="col-sm-8">
                             <div class="text-sm-end">
-                                <a href="{% url 'menu' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Menu List</a>
+                                {% comment %} <a href="{% url 'menu' 'List' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-keyboard-backspace me-1"></i> Menu List</a> {% endcomment %}
                                 </div> 
-                        </div><!-- end col-->
+                        </div><!-- end col-->   
                     </div>
-                    <form name="form1" class="custom-validation" method="POST" enctype="multipart/form-data" id="form1">
+                   <!-- Module, Role, and User selection -->
+                    <form id="permissions_form">
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-lg-3 mt-1">
-                                <div class="form-group">
-                                    <label>
-                                        <strong><b>User</b></strong>
-                                    </label>
-                                    {{ form.user }}
-                                </div>
+                                <label for="module"><strong>Module <span class="text-danger">*</span></strong></label>
+                                <select name="module" id="module" class="form-control">
+                                    <option value="">-- Please Select --</option>
+                                    {% for data in module_list %}
+                                        <option value="{{ data.id }}">{{ data.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                            
-                            <div class=" col-sm-1 mt-5 text-center">
-                                <label class="">
-                                    <strong><b> OR</b></strong>
-                                </label>
-                            </div>
-
                             <div class="col-lg-3 mt-1">
-                                <div class="form-group">
-                                    <label>
-                                        <strong><b> Role </b></strong>
-                                    </label>
-                                    {{ form.role }}
-                                </div>
+                                <label for="role"><strong>Role</strong></label>
+                                <select name="role" id="role" class="form-control">
+                                    <option value="">-- Please Select --</option>
+                                    {% for data in role_list %}
+                                        <option value="{{ data.id }}">{{ data.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-
+                            <div class="col-sm-1 mt-4 text-center">
+                                <label class="mt-2"><strong>OR</strong></label>
+                            </div>
                             <div class="col-lg-3 mt-1">
-                                <div class="form-group">
-                                    <label>
-                                        <strong><b> Module</b></strong>
-                                    </label>
-                                    {{ form.module }}
-                                </div>
-                            </div>
-
-                            <div class="col-lg-2 mt-4">
-                             
-                            <button type="submit" name="search" class="btn btn-info waves-effect">Search</button>
-                              
-                               
+                                <label for="user"><strong>User</strong></label>
+                                <select name="user" id="user" class="form-control">
+                                    <option value="">-- Please Select --</option>
+                                    {% for data in user_list %}
+                                        <option value="{{ data.id }}">{{ data.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                     </form>
-                    
+                    <!-- Permission List Table -->
+                    <div class="row mt-3">
+                        <table class="table" id="permission_list">
+                            <thead>
+                                <tr>
+                                    <th>Menu</th>
+                                    <th>Parent Menu</th>
+                                    <th>URL</th>
+                                    <th>Is_Save</th>
+                                    <th>Is_Update</th>
+                                    <th>Is_Close</th>
+                                    <th>Is_List</th>
+                                    <th>Is_Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+
                     
                 </div>
             </div>
         </div> <!-- end col -->
     </div> <!-- end row -->
 
+<script>
+    $(document).ready(function () {
+        function toggleFields() {
+            let roleSelected = $("#role").val().trim() !== "";
+            let userSelected = $("#user").val().trim() !== "";
+    
+            $("#user").prop("disabled", roleSelected).val(roleSelected ? "" : $("#user").val());
+            $("#role").prop("disabled", userSelected).val(userSelected ? "" : $("#role").val());
+        }
+        
+        $("#role, #user").change(toggleFields);
+        
+        $("#module, #role, #user").change(function () {
+            let module_id = $("#module").val().trim();
+            let requestData = $("#user").val().trim() || $("#role").val().trim();
+    
+            if (module_id && requestData) {
+                $.post("{% url 'get_permission_list' %}", {
+                    module_id: module_id,
+                    requestData: requestData,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                })
+                .done(response => {
+                    let permission_table = $("#permission_list tbody");
+                    permission_table.empty(); 
+                    if(response.permissions) {
+                        response.permissions.forEach(item => {
+                            permission_table.append(`
+                               <tr>
+                                <td>${item.menu_name}</td>
+                                <td>${item.parent_menu}</td>
+                                <td>${item.url}</td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle" type="checkbox" data-menu="${item.menu_id}" data-action="save" ${item.is_save ? 'checked' : ''}>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle" type="checkbox" data-menu="${item.menu_id}" data-action="update" ${item.is_update ? 'checked' : ''}>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle" type="checkbox" data-menu="${item.menu_id}" data-action="close" ${item.is_close ? 'checked' : ''}>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle" type="checkbox" data-menu="${item.menu_id}" data-action="list" ${item.is_list ? 'checked' : ''}>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle" type="checkbox" data-menu="${item.menu_id}" data-action="delete" ${item.is_delete ? 'checked' : ''}>
+                                    </div>
+                                </td>
+                            </tr>
 
+                            `);
+                        });
+                    }
+                })
+                .fail(() => alert("Error fetching data. Please try again."));
+            }
+        });
+    });  
+    $(document).ready(function () {  
+        // Use event delegation for dynamically added elements
+        $(document).on("change", ".toggle", function () {
+            let menu_id = $(this).data("menu");
+            let action = $(this).data("action");
+            let is_checked = $(this).prop("checked");
+            let module_id = $("#module").val().trim();
+            let requestData = $("#user").val().trim() || $("#role").val().trim();
+            $.ajax({
+                url: "{% url 'update_permission' %}",
+                type: "POST",
+                data: {
+                    module_id: module_id,
+                    requestData: requestData,
+                    menu_id: menu_id,
+                    action: action,
+                    is_checked: is_checked,
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function (response) {
+                    console.log();
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                    alert("Failed to update permission.");
+                }
+            });
+        });
+    });
+    
+</script>
 
     {% endblock content %}
     {% block jsfile %} <script src="{% static 'assets/js/pages/form-validation.init.js' %}"></script>{% endblock jsfile %}

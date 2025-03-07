@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="{% static 'assets/css/bootstrap.min.css' %}" id="bootstrap-style" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    
+<div class="container-xxl d-flex justify-content-center align-items-center min-vh-100">
+    <div class="col-md-4">
+        <div class="card px-sm-6 px-3">
+            <div class="card-body">
+                <!-- Flash Messages -->
+                {% if messages %}
+                <div class="col-12">
+                    {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Logo & Title -->
+                <h4 class="mb-3 text-center">👋 Welcome to Our Shop! 👋</h4>
+
+                <!-- Login Form -->
+                <form id="formAuthentication" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email " autofocus>
+                    </div>
+
+                    <div class="mb-3 form-password-toggle">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="input-group">
+                            <input type="password" id="password" class="form-control" name="password" placeholder="•••••••••••">
+                            <span class="input-group-text cursor-pointer" onclick="togglePassword()">
+                                <i id="toggleIcon" class="fa-solid fa-eye-slash"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary w-100" type="submit">Login</button>
+                </form>
+
+                <p class="text-center mt-3">
+                    <span>New on our platform?</span>
+                    <a href="#"><span>Create an account</span></a>
+                </p>
+
+             
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'assets/libs/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'assets/libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script>
+function togglePassword() {
+    var passwordField = document.getElementById("password");
+    var icon = document.getElementById("toggleIcon");
+    if (passwordField.type === "password") {
+        passwordField.type = "text";
+        icon.classList.remove("fa-solid fa-eye-slash");
+        icon.classList.add("fa-solid fa-eye");
+    } else {
+        passwordField.type = "password";
+        icon.classList.remove("fa-solid fa-eye");
+        icon.classList.add("fa-solid fa-eye-slash");
+    }
+}
+</script>
+
+
+</body>
+</html>
+

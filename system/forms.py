@@ -75,27 +75,27 @@ class MenuUrlMasterForm(forms.ModelForm):
 
 
 
-class MenuUrlPermissionMasterForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(MenuUrlPermissionMasterForm, self).__init__(*args, **kwargs)
+# class MenuUrlPermissionMasterForm(forms.ModelForm):
+#     def __init__(self, *args, **kwargs):
+#         super(MenuUrlPermissionMasterForm, self).__init__(*args, **kwargs)
 
-        # Setting Querysets and Empty Labels for ForeignKey Fields
-        self.fields['module'].queryset = ModuleMaster.objects.filter(status=1).order_by('name')
-        self.fields['module'].empty_label = "--Please Select--"
+#         # Setting Querysets and Empty Labels for ForeignKey Fields
+#         self.fields['module'].queryset = ModuleMaster.objects.filter(status=1).order_by('name')
+#         self.fields['module'].empty_label = "--Please Select--"
 
-        self.fields['role'].queryset = RoleMaster.objects.filter(status=1).order_by('name')
-        self.fields['role'].empty_label = "--Please Select--"
+#         self.fields['role'].queryset = RoleMaster.objects.filter(status=1).order_by('name')
+#         self.fields['role'].empty_label = "--Please Select--"
 
-        self.fields['user'].queryset = UserMaster.objects.filter(status=1).order_by('name')
-        self.fields['user'].empty_label = "--Please Select--"
+#         self.fields['user'].queryset = UserMaster.objects.filter(status=1).order_by('name')
+#         self.fields['user'].empty_label = "--Please Select--"
 
-    class Meta:
-        model = MenuUrlPermissionMaster
-        fields = ['module', 'user', 'role']
-        widgets = {
-            'module': forms.Select(attrs={'class': 'form-control'}),
-            'user': forms.Select(attrs={'class': 'form-control'}),
-            'role': forms.Select(attrs={'class': 'form-control'}),
-        }
+#     class Meta:
+#         model = MenuUrlPermissionMaster
+#         fields = ['module', 'user', 'role']
+#         widgets = {
+#             'module': forms.Select(attrs={'class': 'form-control'}),
+#             'user': forms.Select(attrs={'class': 'form-control'}),
+#             'role': forms.Select(attrs={'class': 'form-control'}),
+#         }
 
     

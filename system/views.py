@@ -2,11 +2,283 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from system.models import *
 from system.forms import *
+from django.db.models import Q
 
-# Create your views here.
+def logout(request):
+    request.session.flush() 
+    messages.success(request, 'Logged out successfully .')
+    return redirect('login')
 
-def index (request):
-    return render(request, 'sys_master/index.html')    
+def login(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        if email:
+            try:
+                user_master = get_object_or_404(UserMaster, email=email, status=1)
+
+                if password != user_master.password:
+                    messages.error(request, 'Invalid credentials!')
+                    return redirect('login')
+
+                request.session.update({
+                    'is_authenticated': True,
+                    'user_id': user_master.id,
+                    'role_id': user_master.role.id if user_master.role else None,
+                    'role_name': user_master.role.name if user_master.role else None,
+                    'user_name': user_master.name,
+                })
+
+                role_id = user_master.role.id if user_master.role else None
+
+                module_ids = set(ViewMenuUrlPermission.objects.filter(
+                    Q(permisstion_status=1) & (Q(role_id=role_id) | Q(user_id=user_master.id))
+                ).values_list('module_id', flat=True))
+
+                modules = list(ModuleMaster.objects.filter(id__in=module_ids, status=1).order_by('id'))
+
+                if modules:
+                    module_first = modules[0]
+                    
+                    request.session.update({
+                        'module_id': module_first.id,
+                        'module_name': module_first.name,
+                        'module_img': module_first.module_img.url,
+                        'module_list': [
+                            {
+                                'id': module.id,
+                                'name': module.name,
+                                'module_img': module.module_img.url if module.module_img else None 
+                            } 
+                            for module in modules
+                        ],
+                    })
+                    update_menu_structure(request, module_first.id, role_id, user_master.id)
+                    first_menu_url = get_first_menu_url(module_first.id, role_id, user_master.id)
+
+                    if first_menu_url:
+                        return redirect(first_menu_url)
+                    else:
+                        messages.error(request, "No accessible pages found for your role.")
+                        return redirect('login')
+
+                # return redirect(menu_structure.)
+
+            except Exception as e:
+                messages.error(request, f'An error occurred: {str(e)}')
+        else:
+            messages.error(request, f'Please Enter valid Email!')
+    return render(request, 'sys_master/login.html')
+
+def get_first_menu_url(module_id, role_id, user_id):
+    """
+    Get the first accessible menu URL (index page) for the given module, role, and user.
+    Prioritizes menus with is_list=True.
+    """
+    permission = ViewMenuUrlPermission.objects.filter(
+    module_id=module_id,permisstion_status=1, is_list=True ).filter( Q(role_id=role_id) | Q(user_id=user_id)
+    ).first()
+    if permission:
+        try:
+            menu = MenuUrlMaster.objects.get(id=permission.menu_id)
+            return menu.url 
+        except MenuUrlMaster.DoesNotExist:
+            return None
+
+    return None
+
+def update_menu_structure(request, module_id, role_id, user_id):
+    """ Updates the session with menu structure based on module selection. """
+
+    permissions = ViewMenuUrlPermission.objects.filter(
+        (Q(role_id=role_id) | Q(user_id=user_id)) &
+        Q(module_id=module_id) &  Q(permisstion_status=1) &  Q(is_list=True)
+    )
+    parent_menu_ids = list(permissions.values_list('parent_menu_id', flat=True))
+    child_menu_ids = list(permissions.values_list('menu_id', flat=True))
+
+    parent_menus = {menu.id: menu for menu in MenuUrlMaster.objects.filter(id__in=parent_menu_ids)}
+    child_menus = list(MenuUrlMaster.objects.filter(id__in=child_menu_ids))
+    print("child_menus:",child_menus)
+    menu_structure = {
+        p_id: {'name': menu.menu_name, 'icon': menu.menu_icon, 'order_no':menu.order_no,'children': []}
+        for p_id, menu in parent_menus.items()
+    }
+
+    for child in child_menus:
+        if child.parent_menu and child.parent_menu.id in menu_structure:
+            menu_structure[child.parent_menu.id]['children'].append({
+                'name': child.menu_name,
+                'url': child.url,
+                'clear_query': child.clear_query,
+                'action': 'List',
+                'ids': None,
+                'order_no':child.order_no
+            })
+
+    # Set the new menu_structure
+    print("menu tsructure:",menu_structure)
+    request.session['menu_structure'] = menu_structure
+
+
+
+def change_module(request, module_id):
+    """ Changes the active module and updates session with new menus. """
+    if not request.session.get('is_authenticated', False):
+        return redirect('login')
+
+    role_id = request.session.get('role_id')
+    user_id = request.session.get('user_id')
+
+    module = get_object_or_404(ModuleMaster, id=module_id, status=1)
+
+    # Store the image URL instead of FieldFile object
+    module_img_url = module.module_img.url if module.module_img else ""
+
+    request.session.update({
+        'module_id': module.id,
+        'module_name': module.name,
+        'module_img': module_img_url, 
+    })
+
+    update_menu_structure(request, module.id, role_id, user_id)
+    first_menu_url = get_first_menu_url(module.id, role_id, user_id)
+
+    if first_menu_url:
+        return redirect(first_menu_url)
+    else:
+        messages.error(request, "No accessible pages found for your role.")
+        return redirect('login')
+
+
+# def update_menu_structure(request, module_id, role_id, user_id):
+#     """ Updates the session with menu structure based on module selection. """
+#     permissions = ViewMenuUrlPermission.objects.filter(
+#         (Q(role_id=role_id) | Q(user_id=user_id)) & Q(module_id=module_id) & Q(permisstion_status=1)
+#         & Q(is_list=True)
+#     )
+#     print("permissions:", permissions.values())
+#     parent_menu_ids = list(permissions.values_list('parent_menu_id', flat=True))
+#     print("parent_menu_ids:",parent_menu_ids)
+#     child_menu_ids = list(permissions.values_list('menu_id', flat=True))
+#     print("child_menu_ids:",child_menu_ids)
+#     parent_menus = {menu.id: menu for menu in MenuUrlMaster.objects.filter(id__in=parent_menu_ids)}
+#     child_menus = list(MenuUrlMaster.objects.filter(id__in=child_menu_ids))
+#     print("parent_menus:",parent_menus)
+#     print("child_menus:",child_menus)
+#     menu_structure = {
+#         p_id: {'name': menu.menu_name, 'icon': menu.menu_icon,  'children': []}
+#         for p_id, menu in parent_menus.items()
+#     }
+#     for child in child_menus:
+#         if child.parent_menu and child.parent_menu.id in menu_structure:
+#             menu_structure[child.parent_menu.id]['children'].append({
+#                 'name': child.menu_name,
+#                 'url_name': child.url,
+#                 'clear_query': child.clear_query,
+                
+#             })
+#     print("menu_structure:",menu_structure)
+#     request.session['menu_structure'] = menu_structure
+
+# def change_module(request, module_id):
+#     """ Changes the active module and updates session with new menus. """
+#     if not request.session.get('is_authenticated', False):
+#         return redirect('login')
+
+#     role_id = request.session.get('role_id')
+#     user_id = request.session.get('user_id')
+
+#     module = get_object_or_404(ModuleMaster, id=module_id, status=1)
+#     request.session.update({
+#         'module_id': module.id,
+#         'module_name': module.name,
+#         'module_img': module.module_img,
+#     })
+#     update_menu_structure(request, module.id, role_id, user_id)
+
+#     return redirect('index')
+
+def sys_index(request):
+    return render(request, 'sys_master/index.html')
+
+
+# def login(request):
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+#         password = request.POST.get('password')
+
+#         # Authenticate user first
+#         user_master = UserMaster.objects.get(email=email,password=password,status=1)
+#         if not user_master:
+#             messages.error(request, 'Invalid credentials!')
+#             return redirect('login')
+#         try:
+#             # Store user session data
+#             request.session.update({
+#                 'is_authenticated': True,
+#                 'user_id': user_master.id,
+#                 'role_id': user_master.role.id if user_master.role else None,
+#                 'role_name': user_master.role.name if user_master.role else None,
+#                 'user_name': user_master.name,
+#             })
+
+#             role_id = user_master.role.id if user_master.role else None
+
+#             # Get module IDs assigned to the user's role
+#             module_ids = list(
+#                 ViewMenuUrlPermission.objects.filter(status=1, role_id=role_id).values_list('module_id', flat=True).distinct()
+#             )
+
+#             # Get the first module
+#             module_first = ModuleMaster.objects.filter(id__in=module_ids, status=1).order_by('id').first()
+#             if module_first:
+#                 request.session.update({
+#                     'module_id': module_first.id, 'module_name': module_first.name,
+#                     'module_list': list( ModuleMaster.objects.filter(id__in=module_ids, status=1)
+#                     .values('id', 'name').order_by('id')),
+#                 })
+
+#                 # Fetch menu permissions for the user's role and module
+#                 # permissions = ViewMenuUrlPermission.objects.filter(
+#                 #     role_id=role_id, module_id=module_first.id, menu_status=1
+#                 # )
+#                 permissions = ViewMenuUrlPermission.objects.filter(
+#                     Q(role_id=role_id) & Q(module_id=module_first.id)| Q(user_id=user_master.id)
+#                 )
+
+
+#                 parent_menu_ids = list(permissions.filter(parent_menu_id=0).values_list('menu_id', flat=True))
+#                 child_menu_ids = list(permissions.exclude(parent_menu_id=0).values_list('menu_id', flat=True))
+
+#                 parent_menus = {menu.id: menu for menu in MenuUrlMaster.objects.filter(id__in=parent_menu_ids)}
+#                 child_menus = list(MenuUrlMaster.objects.filter(id__in=child_menu_ids))
+
+#                 # Construct menu structure
+#                 menu_structure = {p_id: {'name': menu.menu_name, 'icon': menu.menu_icon, 'children': []}
+#                                   for p_id, menu in parent_menus.items()}
+
+#                 for child in child_menus:
+#                     if child.parent_menu_id in menu_structure:
+#                         menu_structure[child.parent_menu_id]['children'].append({
+#                             'name': child.menu_name,
+#                             'url': child.url
+#                         })
+
+#                 request.session['menu_structure'] = menu_structure  # Store menu in session if needed
+
+#             return redirect('dashboard')
+
+#         except UserMaster.DoesNotExist:
+#             messages.error(request, 'User not found!')
+#         except Exception as e:
+#             messages.error(request, f'An error occurred: {str(e)}')
+
+#     return render(request, 'sys_master/login.html')
+
+
+# def index (request):
+#     return render(request, 'sys_master/index.html')    
 
 
 def role(request, action, ids=None):
@@ -231,9 +503,10 @@ def menu(request, action, ids=None):
             form = MenuUrlMasterForm(request.POST)
             if form.is_valid():
                 menu_name = form.cleaned_data['menu_name']
+                module = form.cleaned_data['module']
                 user = UserMaster.objects.filter(status=1).first()  
 
-                if not MenuUrlMaster.objects.filter(menu_name=menu_name, status=1).exists():
+                if not MenuUrlMaster.objects.filter(menu_name=menu_name,module_id = module, status=1).exists():
                     menu_instance = form.save(commit=False)
                     menu_instance.user = user
                     menu_instance.save()
@@ -250,8 +523,8 @@ def menu(request, action, ids=None):
             form = MenuUrlMasterForm(request.POST, instance=menu_instance)
             if form.is_valid():
                 menu_name = form.cleaned_data['menu_name']
-
-                if not MenuUrlMaster.objects.filter(menu_name=menu_name, status=1).exclude(id=ids).exists():
+                module = form.cleaned_data['module']
+                if not MenuUrlMaster.objects.filter(menu_name=menu_name,module_id = module, status=1).exclude(id=ids).exists():
                     menu_instance = form.save(commit=False)
                     menu_instance.save()
                     messages.success(request, "Menu successfully updated.")
@@ -293,17 +566,13 @@ def menu(request, action, ids=None):
 
 
 
-def permissions(request):
-    list = None
-    form = MenuUrlPermissionMasterForm()
-
-    if request.method == 'POST':
-        form = MenuUrlPermissionMasterForm(request.POST)
-        if form.is_valid():
-            module_id = form.cleaned_data['module']
-            list = MenuUrlPermissionMaster.objects.filter(status=1,module_id=module_id).order_by('-id')
+def permissions(request,action,ids=None):
+    user_list = role_list = module_list = None
     template = "sys_master/menu_url_permisstions.html" 
-    context = {'form': form, 'list': list}
+    user_list = UserMaster.objects.filter(status=1).values('id','name').order_by('name')
+    role_list = RoleMaster.objects.filter(status=1).values('id','name').order_by('name')
+    module_list = ModuleMaster.objects.filter(status=1).values('id','name').order_by('name')
+    context = {'user_list':user_list,'role_list':role_list,'module_list':module_list}
     return render(request, template, context)
 
 
