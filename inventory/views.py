@@ -477,7 +477,6 @@ def sale(request, action, ids=None):
         
     elif action == "List":
         sale_list = Sale.objects.all().order_by('-id')
-        print('sale :',sale_list.values())
         if request.method == 'POST':
             if 'DelData' in request.POST:
                 DelData = request.POST['DelData']

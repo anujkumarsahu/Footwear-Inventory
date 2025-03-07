@@ -29,9 +29,9 @@ def get_permissions(request):
             return JsonResponse({"error": "Invalid module or role/user ID"}, status=400)
 
         # Fetch related menus for the selected module
-        menus = MenuUrlMaster.objects.filter(module_id=module_id, parent_menu__isnull=False).order_by("menu_name")        
-        role_permissions = list(ViewMenuUrlPermission.objects.filter(module_id=module_id, role_id=role.id) if role else [])
-        user_permissions = list(ViewMenuUrlPermission.objects.filter(module_id=module_id, user_id=user.id) if user else [])
+        menus = MenuUrlMaster.objects.filter(module_id=module_id, parent_menu__isnull=False,status=1).order_by("menu_name")        
+        role_permissions = list(ViewMenuUrlPermission.objects.filter(module_id=module_id, role_id=role.id,permisstion_status=1,permission_dtl_status=1) if role else [])
+        user_permissions = list(ViewMenuUrlPermission.objects.filter(module_id=module_id, user_id=user.id,permisstion_status=1,permission_dtl_status=1) if user else [])
         existing_permissions = role_permissions + user_permissions
         if existing_permissions:
             permission_dict = {perm.menu_id: perm for perm in existing_permissions}
@@ -62,10 +62,10 @@ def update_permission(request):
         action = request.POST.get("action")
         is_checked = request.POST.get("is_checked") == "true"
         requestData = request.POST.get("requestData")
-
+ 
         role = RoleMaster.objects.filter(id=requestData).first()
         user = UserMaster.objects.filter(id=requestData).first()
-
+   
         if not menu_id or not action or (not role and not user):
             return JsonResponse({"error": "Invalid data provided."}, status=400)
 
@@ -73,13 +73,14 @@ def update_permission(request):
             menu_id=menu_id,
             module_id=request.POST.get("module_id"),
             role=role if role else None,
-            user=user if user else None
+            user=user if user else None,
+            status=1
         )
 
         permission_detail, created = MenuUrlPermissionDetails.objects.get_or_create(
-            permission=permission
+            permission=permission,status=1
         )
-
+   
         # Update the corresponding permission field
         if action == "save":
             permission_detail.is_save = is_checked
@@ -97,46 +98,4 @@ def update_permission(request):
 
     return JsonResponse({"error": "Invalid request method."}, status=400)
 
-# @csrf_exempt
-# def update_permission(request):
-#     if request.method == "POST":
-#         menu_id = request.POST.get("menu_id")
-#         action = request.POST.get("action")
-#         is_checked = request.POST.get("is_checked") == "true"
-#         requestData = request.POST.get("requestData")  
 
-#         role = RoleMaster.objects.filter(id=requestData).first()
-#         user = UserMaster.objects.filter(id=requestData).first()
-
-#         if not menu_id or not action or (not role and not user):
-#             return JsonResponse({"error": "Invalid data"}, status=400)
-
-#         permission, created = MenuUrlPermissionMaster.objects.get_or_create(
-#             menu_id=menu_id,
-#             module_id=request.POST.get("module_id"),
-#             role=role if role else None,
-#             user=user if user else None
-#         )
-
-#         # Get or create permission details
-#         permission_detail, created = MenuUrlPermissionDetails.objects.get_or_create(
-#             permission=permission
-#         )
-
-#         # Update the correct field
-#         if action == "save":
-#             permission_detail.is_save = is_checked
-#         elif action == "update":
-#             permission_detail.is_update = is_checked
-#         elif action == "close":
-#             permission_detail.is_close = is_checked
-#         elif action == "list":
-#             permission_detail.is_list = is_checked
-#         elif action == "delete":
-#             permission_detail.is_delete = is_checked
-
-#         permission_detail.save()
-
-#         return JsonResponse({"success": "Permission updated"}, status=200)
-
-#     return JsonResponse({"error": "Invalid request"}, status=400)

@@ -203,6 +203,7 @@
             let is_checked = $(this).prop("checked");
             let module_id = $("#module").val().trim();
             let requestData = $("#user").val().trim() || $("#role").val().trim();
+           
             $.ajax({
                 url: "{% url 'update_permission' %}",
                 type: "POST",
@@ -213,9 +214,10 @@
                     action: action,
                     is_checked: is_checked,
                     csrfmiddlewaretoken: "{{ csrf_token }}"
+                    
                 },
                 success: function (response) {
-                    console.log();
+                    console.log("updat permission");
                 },
                 error: function (xhr, status, error) {
                     console.error("Error:", error);
