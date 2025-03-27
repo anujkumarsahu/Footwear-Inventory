@@ -2,7 +2,7 @@
 {% load static %}
 {% block cssfile %}{% endblock cssfile %}
 {% block content %}
-
+{% load custom_permission %}
 
 <div class="container-fluid">
 
@@ -40,9 +40,12 @@
                             </div>
                         </div>
                         <div class="col-sm-8">
+                            {% check_action_permission 'Role' 'is_save' as has_permission %}
+                            {% if has_permission %}
                             <div class="text-sm-end">
                                 <a href=" {% url 'role' 'Save' 'None' %}" class="btn btn-success btn-rounded waves-effect waves-light mb-2 me-2"><i class="mdi mdi-plus me-1"></i> Add New Role</a>
                                 </div> 
+                            {% endif %}
                         </div><!-- end col-->
                     </div>
 
@@ -64,15 +67,26 @@
                                     <td>{{ forloop.counter}} </td>
                                     <td> {{data.name}} </td>    
                                     <td> {{data.description}}  </td>
+                                    {% load custom_permission %}
+
                                     
                                   
                                     <td>
                                         <div class="d-flex gap-3">
+                                            {% check_action_permission 'Role' 'is_close' as has_permission %}
+                                            {% if has_permission %}
                                             <a href="{% url 'role' 'Close' data.id %}" class="text-warning"><i class="mdi mdi-eye font-size-18"></i></a>
+                                            {% endif %}
+                                            {% check_action_permission 'Role' 'is_update' as has_permission %}
+                                            {% if has_permission %}
                                             <a href="{% url 'role' 'Update' data.id %}" class="text-success"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                            {% endif %}
+                                            {% check_action_permission 'Role' 'is_delete' as has_permission %}
+                                            {% if has_permission %}
                                             <a href="#" class="pull-right text-danger" data-bs-toggle="modal" data-bs-target=".ActiveDeactiveModel{{ data.id }}" title="Add New Brand">
                                                 <i class="mdi mdi-delete font-size-18"></i>
                                             </a>
+                                            {% endif %}
                                         </div>
                                         <!-- Modal -->
                                         <div class="modal fade ActiveDeactiveModel{{ data.id }}" tabindex="-1" role="dialog" aria-labelledby="ActiveDeactiveModel{{ data.id }}" aria-hidden="true">

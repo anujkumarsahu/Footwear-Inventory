@@ -1,0 +1,164 @@
+
+
+{% extends 'base.html' %}
+{% block title %}<title> Stock Report</title>{% endblock title %}
+{% load static %}
+{% block cssfile %}{% endblock cssfile %}
+{% block content %}
+{% load custom_permission %}
+
+<div class="container-fluid">
+
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0 font-size-18">Stock Report</h4>
+
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    {% if messages %}
+    <div class="col-12">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                         <!-- Filter Form -->
+                         <form method="POST" class="mb-4">
+                            {% csrf_token %}
+                            
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="id_brand" class="form-label">Select Brand</label>
+                                    <select name="brand" id="id_brand" class="form-control">
+                                        <option value="">--Select--</option>
+                                        {% for brand in brands %}
+                                            <option value="{{ brand.id }}" 
+                                                {% if selected_brand == brand.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ brand.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                        
+                                <div class="col-md-3">
+                                    <label for="id_category" class="form-label">Select Category/Gender</label>
+                                    <select name="category" id="id_category" class="form-control">
+                                        <option value="">--Select--</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}" 
+                                                {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ category.name }} ({{ category.gender }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                        
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                    </div>
+                    <div class="row">
+                        <table id="datatable-buttons" class="table w-100">
+                            <thead class="table-light">
+                                <tr>
+                                    
+                                    <th class="align-middle">#</th>
+                                    <th class="align-middle"> Foodwhear </th>
+                                    <th class="align-middle"> Brand </th>
+                                    <th class="align-middle">Category | Gender</th>
+                                    <th class="align-middle">Size</th>
+                                    <th class="align-middle">Total Stock</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% if stock_data %}
+                                {% for item in stock_data %}
+                                    <tr>
+                                        <td>{{forloop.counter}}</td>
+                                        <td>{{item.name}}</td>
+                                        <td>{{ item.footwear__brand__name }} </td>
+                                        <td>{{ item.footwear__category__name }} <span>&nbsp;</span>| <span>&nbsp;</span>    {{item.footwear__category__gender}}</td>
+                                        <td>{{ item.size__system }}-{{item.size__value}}</td>
+                                        <td>{{ item.total_stock }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-danger">No data found.</td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<script>
+    $(document).ready(function () {
+        var brandId = $('#id_brand').val();
+        var selectedCategory = "{{ selected_category }}"; 
+        
+        if (brandId) {
+            get_category(selectedCategory);
+        }
+
+        $('#id_brand').change(function () {
+            get_category('');
+        });
+
+        function get_category(selectedCategory) {
+            var brandId = $('#id_brand').val();
+            var csrfToken = "{{ csrf_token }}";
+
+            $.ajax({
+                url: "{% url 'get_categories' %}",
+                type: "POST",
+                data: {
+                    brand_id: brandId,
+                    selected_category: selectedCategory,
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (data) {
+                    var categorySelect = $('#id_category');
+                    categorySelect.empty();
+                    categorySelect.append('<option value="">--Select--</option>');
+
+                    if (data.categories && data.categories.length > 0) {
+                        $.each(data.categories, function (index, category) {
+                            var isSelected = category.id == selectedCategory ? 'selected' : '';
+                            categorySelect.append(`<option value="${category.id}" ${isSelected}>${category.name}</option>`);
+                        });
+                    } else {
+                        categorySelect.append('<option value="">No categories found</option>');
+                    }
+                },
+                error: function () {
+                    alert("Failed to fetch categories. Please try again.");
+                }
+            });
+        }
+    });
+</script>
+
+
+{% endblock content %}
+{% block jsfile %} <script src="{% static 'assets/js/pages/datatables.init.js' %}"></script>{% endblock jsfile %}

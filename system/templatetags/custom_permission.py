@@ -17,14 +17,12 @@ def get_menu_structure(context):
 
 @register.simple_tag(takes_context=True)
 def check_action_permission(context, menu_name, action):
-    print("menu , action:::",menu_name, action)
     """
     Optimized permission check with improved error handling and efficient logic.
     """
     menu_structure = get_menu_structure(context)
 
     try:
-        print("menu_structure:::",menu_structure)
         return any(
             child_menu.get('action_permissions', {}).get(action, False)
             for parent_menu in menu_structure.values()

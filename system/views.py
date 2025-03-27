@@ -55,7 +55,7 @@ def login(request):
                     })
                     update_menu_structure(request, module_first.id, role_id, user_master.id)
                     first_menu_url = get_first_menu_url(module_first.id, role_id, user_master.id)
-
+                
                     if first_menu_url:
                         return redirect(first_menu_url)
                     else:
@@ -81,18 +81,14 @@ def get_first_menu_url(module_id, role_id, user_id):
     if permission:
         try:
             menu = MenuUrlMaster.objects.get(id=permission.menu_id)
-            return menu.url 
+            if menu.url == 'index':
+                return menu.url
+            else:
+                return f'{menu.module.name}/{menu.url}/List/None?cmd=clear'
         except MenuUrlMaster.DoesNotExist:
             return None
 
     return None
-
-
-
-# views.py
-from django.shortcuts import get_object_or_404
-from django.db.models import Q
-from .models import ViewMenuUrlPermission, MenuUrlMaster
 
 def update_menu_structure(request, module_id, role_id, user_id):
     """
@@ -104,7 +100,6 @@ def update_menu_structure(request, module_id, role_id, user_id):
         permission_dtl_status=1,
         is_list=True,
     ).filter(Q(role_id=role_id) | Q(user_id=user_id, role_id__isnull=True))
-
     parent_menu_ids = list(permissions.values_list('parent_menu_id', flat=True))
     child_menu_ids = list(permissions.values_list('menu_id', flat=True))
 
@@ -140,7 +135,6 @@ def update_menu_structure(request, module_id, role_id, user_id):
                 'ids': None,
                 'order_no': child.order_no
             })
-
     request.session['menu_structure'] = menu_structure
 
 

@@ -253,19 +253,19 @@ class PurchaseForm(forms.Form):
             required=True,
             widget=forms.NumberInput(attrs={'class': 'form-control p_price'})
         )
-        self.fields['selling_price'] = forms.DecimalField(
-            max_digits=10,
-            decimal_places=2,
-            min_value=0,
-            required=True,
-            widget=forms.NumberInput(attrs={'class': 'form-control'})
-        )
+        # self.fields['selling_price'] = forms.DecimalField(
+        #     max_digits=10,
+        #     decimal_places=2,
+        #     min_value=0,
+        #     required=True,
+        #     widget=forms.NumberInput(attrs={'class': 'form-control'})
+        # )
 
-        # Form fields for FootwearImage
-        self.fields['image'] = forms.ImageField(
-            required=False,
-            widget=forms.FileInput(attrs={'class': 'form-control-file'}),
-        )
+        # # Form fields for FootwearImage
+        # self.fields['image'] = forms.ImageField(
+        #     required=False,
+        #     widget=forms.FileInput(attrs={'class': 'form-control-file'}),
+        # )
 
 
 class SupplierForm(forms.ModelForm):
