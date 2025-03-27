@@ -205,7 +205,7 @@ class FootwearVariant(BaseModel):
     color = models.CharField(max_length=50)
     quantity = models.PositiveIntegerField()
     p_price = models.DecimalField(max_digits=15, decimal_places=2)
-    selling_price = models.DecimalField(max_digits=15, decimal_places=2)
+    # selling_price = models.DecimalField(max_digits=15, decimal_places=2)
     size = models.ForeignKey(Size, on_delete=models.CASCADE)
     stock_quantity = models.PositiveIntegerField(default=0)
     mrp = models.DecimalField(max_digits=10, decimal_places=2)
@@ -300,35 +300,35 @@ class SaleDetail(BaseModel):
     
 
         
-# Return Management
-class Return(BaseModel):
-    RETURN_TYPE_CHOICES = [
-        ('DMG', 'Damaged'),
-        ('SIZ', 'Size Issue'),
-        ('DEF', 'Defective'),
-        ('OTH', 'Other')
-    ]
+# # Return Management
+# class Return(BaseModel):
+#     RETURN_TYPE_CHOICES = [
+#         ('DMG', 'Damaged'),
+#         ('SIZ', 'Size Issue'),
+#         ('DEF', 'Defective'),
+#         ('OTH', 'Other')
+#     ]
     
-    id = models.BigAutoField(primary_key=True)
-    sale_detail = models.ForeignKey(SaleDetail, on_delete=models.CASCADE,)
-    return_type = models.CharField(max_length=3, choices=RETURN_TYPE_CHOICES)
-    quantity = models.PositiveIntegerField()
-    notes = models.TextField(null=True, blank=True)
+#     id = models.BigAutoField(primary_key=True)
+#     sale_detail = models.ForeignKey(SaleDetail, on_delete=models.CASCADE,)
+#     return_type = models.CharField(max_length=3, choices=RETURN_TYPE_CHOICES)
+#     quantity = models.PositiveIntegerField()
+#     notes = models.TextField(null=True, blank=True)
 
-    def save(self, *args, **kwargs):
-        if self.quantity > self.sale_detail.quantity:
-            raise ValidationError("Returned quantity cannot exceed sold quantity.")
-        self.sale_detail.variant.stock_quantity += self.quantity
-        self.sale_detail.variant.save()
-        super().save(*args, **kwargs)
+#     def save(self, *args, **kwargs):
+#         if self.quantity > self.sale_detail.quantity:
+#             raise ValidationError("Returned quantity cannot exceed sold quantity.")
+#         self.sale_detail.variant.stock_quantity += self.quantity
+#         self.sale_detail.variant.save()
+#         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"Return: {self.id} - {self.return_type}"
+#     def __str__(self):
+#         return f"Return: {self.id} - {self.return_type}"
     
-    class Meta:
-        db_table = 'tbl_return'
-        app_label = 'inventory'
-        managed = False
+#     class Meta:
+#         db_table = 'tbl_return'
+#         app_label = 'inventory'
+#         managed = False
         
         
 # Promotions and Discounts

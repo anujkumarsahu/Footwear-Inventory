@@ -1,8 +1,9 @@
 from decimal import Decimal
+from django.db import transaction
 from django.contrib import messages
 from django.shortcuts import redirect, render,get_object_or_404
 from inventory.forms import *
-from django.db.models import Prefetch
+from django.db.models import Prefetch,Sum
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 # Create your views here.
 
@@ -184,7 +185,7 @@ def purchase(request, action, ids=None):
                 colorlist = request.POST.getlist('color')
                 mrplist = request.POST.getlist('mrp')
                 p_pricelist = request.POST.getlist('p_price')
-                selling_pricelist = request.POST.getlist('selling_price')
+                # selling_pricelist = request.POST.getlist('selling_price')
                 
                 
                 list_lengths = [len(namelist), len(footwearlist)]
@@ -225,7 +226,7 @@ def purchase(request, action, ids=None):
                         color=colorlist[i],
                         quantity=int(quantitylist[i]),
                         p_price=Decimal(p_pricelist[i]),
-                        selling_price=Decimal(selling_pricelist[i]),
+                        # selling_price=Decimal(selling_pricelist[i]),
                         mrp=Decimal(mrplist[i]),
                     )
                     variant_instances.append(footwear_variant)
@@ -333,24 +334,103 @@ def purchase(request, action, ids=None):
                     messages.error(request, 'Data Already Exists.')
             else:
                 messages.error(request, 'Form is Not Valid.')
-                
+    elif action == 'Update' and ids:
+        ids = int(ids)
+        try:
+            purchase_data = Purchase.objects.get(id=ids)
+            print("purchase_data.gst_id : ",purchase_data.gst_id)
+            form = PurchaseForm(initial={
+                'po_number': purchase_data.po_number,
+                'po_date': purchase_data.po_date.strftime('%d-%m-%Y'),
+                'supplier': purchase_data.supplier_id,
+                'gst': purchase_data.gst_id if purchase_data.gst_id else '',
+                'gst_amount': purchase_data.gst_amount,
+                'total_amount': purchase_data.total_amount,
+                'active_status': purchase_data.active_status,
+                'notes': purchase_data.notes,
+            })
+
+            # Fetch related FootwearVariant data
+            footwear_variants = FootwearVariant.objects.filter(purchase=purchase_data)
+            for i, variant in enumerate(footwear_variants):
+                form.initial[f'footwear_{i}'] = variant.footwear.id
+                form.initial[f'materials_{i}'] = variant.material.id
+                form.initial[f'size_{i}'] = variant.size.id
+                form.initial[f'color_{i}'] = variant.color
+                form.initial[f'name_{i}'] = variant.name
+                form.initial[f'mrp_{i}'] = variant.mrp
+                form.initial[f'quantity_{i}'] = variant.quantity
+                form.initial[f'p_price_{i}'] = variant.p_price
+
+            if request.method == 'POST' and 'purchase' in request.POST:
+                form = PurchaseForm(request.POST)
+                # Update purchase data
+                purchase_data.supplier_id = request.POST.get('supplier')
+                purchase_data.po_number = request.POST.get('po_number')
+                purchase_data.po_date = datetime.datetime.strptime(request.POST.get('po_date'), '%d-%m-%Y')
+                purchase_data.gst_id = request.POST.get('gst') if request.POST.get('gst') else None
+                purchase_data.gst_amount = Decimal(request.POST.get('gst_amount', '0'))
+                purchase_data.total_amount = Decimal(request.POST.get('total_amount', '0'))
+                purchase_data.active_status = request.POST.get('active_status', 'PEN')
+                purchase_data.notes = request.POST.get('notes', '')
+                purchase_data.save()
+
+                # Get new data from the form
+                namelist = request.POST.getlist('name')
+                footwearlist = request.POST.getlist('footwear')
+                materialslist = request.POST.getlist('materials')
+                sizelist = request.POST.getlist('size')
+                quantitylist = request.POST.getlist('quantity')
+                colorlist = request.POST.getlist('color')
+                mrplist = request.POST.getlist('mrp')
+                p_pricelist = request.POST.getlist('p_price')
+
+                # Fetch existing FootwearVariant instances
+                existing_variants = FootwearVariant.objects.filter(purchase=purchase_data)
+
+                # Update existing variants
+                for i, variant in enumerate(existing_variants):
+                    if i < len(namelist):  # Update only if there is corresponding new data
+                        variant.footwear = Footwear.objects.get(id=footwearlist[i])
+                        variant.material = Material.objects.get(id=materialslist[i])
+                        variant.size = Size.objects.get(id=sizelist[i])
+                        variant.name = namelist[i]
+                        variant.color = colorlist[i]
+                        variant.quantity = int(quantitylist[i])
+                        variant.p_price = Decimal(p_pricelist[i])
+                        variant.mrp = Decimal(mrplist[i])
+                        variant.save()
+                    else:
+                        # Delete extra variants if new data has fewer items
+                        variant.delete()
+
+                # Create new variants if new data has more items
+                if len(namelist) > len(existing_variants):
+                    for i in range(len(existing_variants), len(namelist)):
+                        footwear_ins = Footwear.objects.get(id=footwearlist[i])
+                        size_ins = Size.objects.get(id=sizelist[i])
+                        materials_ins = Material.objects.get(id=materialslist[i])
+
+                        FootwearVariant.objects.create(
+                            footwear=footwear_ins,
+                            purchase=purchase_data,
+                            material=materials_ins,
+                            size=size_ins,
+                            name=namelist[i],
+                            color=colorlist[i],
+                            quantity=int(quantitylist[i]),
+                            p_price=Decimal(p_pricelist[i]),
+                            mrp=Decimal(mrplist[i]),
+                        )
+
+                messages.success(request, 'Data Successfully Updated.')
+                return redirect('purchase', 'List', None)
+
+        except Purchase.DoesNotExist:
+            messages.error(request, 'Purchase record not found.')
     elif action == "Close" and ids:
         ids = int(ids)
         purchase_list = Purchase.objects.select_related('gst', 'supplier' ).filter(id=ids).first()
-        # purchase_list = Purchase.objects.select_related(
-        #         'gst', 'supplier'
-        #     ).filter(id=ids).only(
-        #         'id', 'po_number', 'po_date', 'supplier__name', 'gst__gst_percentage', 
-        #         'total_amount', 'notes'
-        #     ).first()
-
-            # Optimized Query for Related Data (Footwear Variants)
-        # footwear_variants = FootwearVariant.objects.select_related(
-        #     'footwear__category', 'footwear__brand', 'material', 'size'
-        # ).filter(purchase_id=ids).only(
-        #     'id', 'footwear__category__name', 'footwear__brand__name',
-        #     'material__name', 'size__name', 'color', 'quantity', 'p_price'
-        # )
         footwear_variants = FootwearVariant.objects.select_related('footwear__category', 'footwear__brand', 'material', 'size').filter(purchase_id=ids)
         
         
@@ -403,9 +483,10 @@ def purchase(request, action, ids=None):
 def sale(request, action, ids=None):
     current_date = datetime.datetime.today()
     footwear_variants = FootwearVariant.objects.filter(status=1,stock_quantity__gt=0).select_related('footwear__category', 'footwear__brand', 'material')
+    footwear_update_variants = FootwearVariant.objects.filter(status=1,stock_quantity__gte=0).select_related('footwear__category', 'footwear__brand', 'material')
     forms = CustomerForm()
     sale_form = SaleForm()
-
+    sizes=sale_details = None
     if action == "Save":
         if request.method == 'POST':
             forms = CustomerForm(request.POST)
@@ -474,7 +555,114 @@ def sale(request, action, ids=None):
 
             messages.success(request, "Sale successfully created.")
             return redirect('sale', 'List', None)
-        
+    
+    elif action == "Update" and ids:
+        ids = int(ids)
+        # Fetch the sale instance with related data
+        sale = (  Sale.objects .select_related('customer', 'gst').prefetch_related( 'sale_details__variant', 'sale_details__size' ) .get(id=ids) )
+        sale_details = sale.sale_details.all()
+        sizes = Size.objects.filter(status=1).values_list('id', 'system', 'value').order_by('system', 'value')
+
+        customer_ins = sale.customer  
+        forms = CustomerForm(instance=customer_ins) 
+        sale_form = SaleForm(initial={
+            'payable_amount': sale.payable_amount,
+            'discount': sale.discount,
+            'gst_amount': sale.gst_amount,
+            'total_amount': sale.total_amount,
+            'payment_method': sale.payment_method,
+            'notes': sale.notes,
+            'gst': sale.gst.id if sale.gst else None,
+        })
+
+        if request.method == 'POST':
+            forms = CustomerForm(request.POST, instance=customer_ins)
+            sale_form = SaleForm(request.POST, initial={
+                'payable_amount': sale.payable_amount,
+                'discount': sale.discount,
+                'gst_amount': sale.gst_amount,
+                'total_amount': sale.total_amount,
+                'payment_method': sale.payment_method,
+                'notes': sale.notes,
+                'gst': sale.gst.id if sale.gst else None,
+            })
+
+            if forms.is_valid() and sale_form.is_valid():
+                try:
+                    with transaction.atomic():
+                        # Update Customer details
+                        contact_number = request.POST.get('contact_number')
+                        customer_ins, created = Customer.objects.get_or_create(
+                            contact_number=contact_number,
+                            defaults={
+                                'name': request.POST.get('name'),
+                                'email': request.POST.get('email'),
+                            }
+                        )
+                        
+                        # Update Sale instance
+                        sale.customer = customer_ins
+                        sale.payable_amount = request.POST.get('payable_amount')
+                        sale.discount = request.POST.get('discount')
+                        sale.gst_amount = request.POST.get('gst_amount')
+                        sale.total_amount = request.POST.get('total_amount')
+                        sale.payment_method = request.POST.get('payment_method')
+                        sale.notes = request.POST.get('notes')
+                        
+                        gst = request.POST.get('gst')
+                        if gst:
+                            gst_ins = get_object_or_404(GstMaster, id=gst)
+                            sale.gst = gst_ins
+                        
+                        sale.save()
+
+                        # Process SaleDetail data from POST
+                        variant_ids = request.POST.getlist('footwear_variant')
+                        sizes = request.POST.getlist('footwear_size')
+                        quantities = request.POST.getlist('qty')
+                        selling_prices = request.POST.getlist('s_price')
+                        
+                        # Validate data lengths
+                        if not (len(variant_ids) == len(sizes) == len(quantities) == len(selling_prices)):
+                            raise ValueError("Form data is inconsistent.")
+                        
+                        # First, delete existing SaleDetail entries
+                        SaleDetail.objects.filter(sale=sale).delete()
+                        
+                        for i in range(len(variant_ids)):
+                            variant = get_object_or_404(FootwearVariant, id=variant_ids[i])
+                            size = get_object_or_404(Size, id=sizes[i])
+                            quantity = int(quantities[i])
+                            selling_price = Decimal(selling_prices[i])
+                            
+                            # Check stock availability
+                            if variant.stock_quantity < quantity:
+                                raise ValueError(f"Insufficient stock for variant {variant.name}.")
+                            
+                            # Create new SaleDetail entry
+                            SaleDetail.objects.create(
+                                sale=sale,
+                                variant=variant,
+                                size=size,
+                                quantity=quantity,
+                                selling_price=selling_price,
+                                sub_total_price=quantity * selling_price,
+                            )
+
+                            # Update stock quantity
+                            variant.stock_quantity -= quantity
+                            variant.save()
+
+                        messages.success(request, "Dsta successfully updated.")
+                        return redirect('sale', 'List', None)
+                
+                except Exception as e:
+                    messages.error(request, f"An error occurred: {str(e)}")
+                    return redirect('sale', 'Update', ids)
+            else:
+                # If forms are not valid, show errors
+                messages.error(request, "Please correct the errors below.")
+      
     elif action == "List":
         sale_list = Sale.objects.all().order_by('-id')
         if request.method == 'POST':
@@ -493,19 +681,6 @@ def sale(request, action, ids=None):
         context = {'sale_list': sale_list, 'action': action}
         return render(request, template, context)
 
-    elif action == "Update" and ids:
-        sale = get_object_or_404(Sale, id=ids)
-        forms = CustomerForm(instance=sale.customer)
-        sale_form = SaleForm(instance=sale)
-        if request.method == 'POST':
-            forms = CustomerForm(request.POST, instance=sale.customer)
-            sale_form = SaleForm(request.POST, instance=sale)
-            if forms.is_valid() and sale_form.is_valid():
-                forms.save()
-                sale_form.save()
-                messages.success(request, "Sale successfully updated.")
-                return redirect('sale', 'List', None)
-
     elif action == "Close" and ids:
         sale = (Sale.objects.select_related('customer', 'gst').prefetch_related('sale_details__variant', 'sale_details__size').get(id=ids))
         sale_details = sale.sale_details.all()
@@ -514,5 +689,39 @@ def sale(request, action, ids=None):
         return render(request, template, context)
 
     template = 'master/sale.html'
-    context = { 'action': action,'ids': ids, 'forms': forms, 'sale_form': sale_form, 'current_date': current_date,  'footwear_variants': footwear_variants, }
+    context = { 'action': action,'ids': ids, 'forms': forms, 'sale_form': sale_form, 'current_date': current_date,  'footwear_variants': footwear_variants, 'sale_details':sale_details
+               ,'sizes':sizes,'footwear_update_variants':footwear_update_variants}
     return render(request, template, context)
+
+def stock_report(request, action, ids=None):
+    brands = Brand.objects.filter(status=1).order_by('name')
+    categories = []
+    stock_data = FootwearVariant.objects.select_related('footwear', 'size').values( 'name',
+        'footwear__brand__name', 'footwear__category__name', 'footwear__category__gender',
+        'size__system', 'size__value'
+    ).annotate(
+        total_stock=Sum('stock_quantity')
+    ).order_by('footwear__category__name', 'footwear__category__gender', 'size__system', 'size__value')
+
+    brand = request.POST.get('brand')
+    category = request.POST.get('category')
+
+    if request.method == 'POST':
+        if brand:
+            stock_data = stock_data.filter(footwear__brand_id=brand)
+            category_ids = Footwear.objects.filter(brand_id=brand).values_list('category_id', flat=True).distinct()
+            categories = FootwearCategory.objects.filter(id__in=category_ids).values('id', 'name', 'gender').order_by('name')
+
+        if category:
+            stock_data = stock_data.filter(footwear__category_id=category)
+        else:
+            stock_data = stock_data.filter(footwear__category_id__in=categories)
+
+    context = {
+        'brands': brands,
+        'categories': categories,
+        'selected_brand': brand,
+        'selected_category': category,
+        'stock_data': stock_data
+    }
+    return render(request, 'master/stock_report.html', context)
